@@ -501,6 +501,30 @@
       color: rgba(255,70,85,.6);
     }
 
+    /* ─── MELEE SPECIFICS ───────────────────────────────────── */
+    .badge-melee {
+      background: rgba(255, 193, 7, 0.15) !important;
+      color: #ffc107 !important;
+      border: 1px solid rgba(255, 193, 7, 0.4) !important;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+    .vp-asterisk.melee-warn {
+      font-size: .75rem;
+      cursor: help;
+      font-family: inherit;
+      font-weight: 400;
+    }
+    .melee-price-note {
+      display: block;
+      font-size: .62rem;
+      color: #ffc107;
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: .03em;
+      margin-top: 1px;
+      opacity: .85;
+    }
+
     .wl-btn {
       background: none;
       border: none;
@@ -659,6 +683,10 @@
     .wl-item-sub {
       font-size: .68rem; color: var(--muted);
       font-family: 'Barlow Condensed', sans-serif; letter-spacing: .04em;
+    }
+    .wl-melee-tag {
+      color: #ffc107;
+      font-weight: 700;
     }
     .wl-item-price {
       font-family: 'Rajdhani', sans-serif;
@@ -894,14 +922,32 @@
    VALOSKINS — vanilla JS  v2 (région + devise + Exclusive fix)
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── RARITY MAP ─────────────────────────────────────────────── */
-/*  Exclusive VP = 2175 (base) — variable bundle (2175–2675 VP)  */
+/* ── RARITY MAP (base — le VP sera calculé dynamiquement selon arme/melee) ── */
 const TIERS = {
-  '12683d76-48d7-84a3-4e09-6985794f0445': { key:'select',    label:'Select',           vp:875,  color:'#4ade80', exclusive:false },
-  '0cebb8be-46d7-c12a-be0d-9acbac1d48c4': { key:'deluxe',    label:'Deluxe',           vp:1275, color:'#60a5fa', exclusive:false },
-  '60bca009-4182-7998-dee7-b8a2558dc369': { key:'premium',   label:'Premium Edition',  vp:1775, color:'#c084fc', exclusive:false },
-  '411e4a55-4e59-7757-41f0-86a53f101bb5': { key:'ultra',     label:'Ultra Edition',    vp:2475, color:'#fbbf24', exclusive:false },
-  'e046854e-406c-37f4-6607-19a9ba8426fc': { key:'exclusive', label:'Exclusive',        vp:2175, color:'#FF4655', exclusive:true  },
+  '12683d76-48d7-84a3-4e09-6985794f0445': { key:'select',    label:'Select',           color:'#4ade80', exclusive:false },
+  '0cebb8be-46d7-c12a-be0d-9acbac1d48c4': { key:'deluxe',    label:'Deluxe',           color:'#60a5fa', exclusive:false },
+  '60bca009-4182-7998-dee7-b8a2558dc369': { key:'premium',   label:'Premium Edition',  color:'#c084fc', exclusive:false },
+  '411e4a55-4e59-7757-41f0-86a53f101bb5': { key:'ultra',     label:'Ultra Edition',    color:'#fbbf24', exclusive:false },
+  'e046854e-406c-37f4-6607-19a9ba8426fc': { key:'exclusive', label:'Exclusive',        color:'#FF4655', exclusive:true  },
+};
+
+/* ── PRIX ARMES CLASSIQUES (875 – 2475 VP) ───────────────────── */
+const WEAPON_PRICE = {
+  'select':    { vp: 875,  eur: 8.74  },
+  'deluxe':    { vp: 1275, eur: 12.74 },
+  'premium':   { vp: 1775, eur: 17.74 },
+  'exclusive': { vp: 2175, eur: 21.74 },
+  'ultra':     { vp: 2475, eur: 24.74 },
+};
+
+/* ── PRIX MELEES / COUTEAUX (1750 – 5950 VP) ────────────────── */
+/*  ⚠️ Ces prix sont DIFFÉRENTS des armes classiques              */
+const MELEE_PRICE = {
+  'select':    { vp: 1750, eur: 17.49 },
+  'deluxe':    { vp: 2550, eur: 25.49 },
+  'premium':   { vp: 3550, eur: 35.49 },
+  'exclusive': { vp: 4350, eur: 43.49 },
+  'ultra':     { vp: 4950, eur: 49.49 },
 };
 const TIER_ORDER = ['select','deluxe','premium','ultra','exclusive'];
 
@@ -1054,7 +1100,17 @@ async function init() {
         if (!TIERS[skin.contentTierUuid]) return;
         if ((skin.displayName || '').toLowerCase().includes('standard')) return;
 
-        const tier = TIERS[skin.contentTierUuid];
+        const baseTier   = TIERS[skin.contentTierUuid];
+        const weaponName = weapon.displayName;
+        const isMelee    = weaponName === 'Melee';
+
+        /* Prix selon type : melee ou arme classique */
+        const priceTable = isMelee ? MELEE_PRICE : WEAPON_PRICE;
+        const priceData  = priceTable[baseTier.key] || { vp: 0, eur: 0 };
+
+        /* Tier enrichi avec le VP correct pour ce type d'arme */
+        const tier = { ...baseTier, vp: priceData.vp, isMelee };
+
         const img  = skin.displayIcon
           || (skin.chromas && skin.chromas[0] && skin.chromas[0].displayIcon)
           || null;
@@ -1063,7 +1119,7 @@ async function init() {
         skins.push({
           uuid:       skin.uuid,
           name:       skin.displayName,
-          weapon:     weapon.displayName,
+          weapon:     weaponName,
           collection: col,
           tier,
           img,
@@ -1145,21 +1201,33 @@ function getFiltered() {
 
 /* ── PRICE HTML FOR CARD ─────────────────────────────────────── */
 function priceHTML(s) {
-  const isExclusive = s.tier.exclusive;
-  const vpLabel = isExclusive
-    ? `${s.tier.vp} VP <span class="vp-asterisk" title="Prix variable selon le bundle (2 175 – 2 675 VP)">*</span>`
-    : `${s.tier.vp} VP`;
+  const isMelee     = s.tier.isMelee;
+  const isExclusive = s.tier.exclusive && !isMelee;  /* Exclusive arme seulement */
+
+  let vpLabel;
+  if (isMelee) {
+    /* Melee : prix standard du tier + avertissement */
+    vpLabel = `${s.tier.vp.toLocaleString('fr-FR')} VP <span class="vp-asterisk melee-warn" title="Prix variable — voir le shop (${s.tier.vp.toLocaleString('fr-FR')} VP est le tarif standard du tier)">⚠️</span>`;
+  } else if (isExclusive) {
+    vpLabel = `${s.tier.vp.toLocaleString('fr-FR')} VP <span class="vp-asterisk" title="Prix variable selon le bundle (2 175 – 2 675 VP)">*</span>`;
+  } else {
+    vpLabel = `${s.tier.vp.toLocaleString('fr-FR')} VP`;
+  }
 
   const localAmount = vpToDisplay(s.tier.vp);
   const localStr    = formatPrice(localAmount, selectedCurrency);
 
-  const noteHTML = isExclusive
-    ? ` <span class="exc-note">*</span>`
-    : '';
+  let noteHTML = '';
+  if (isMelee) {
+    noteHTML = `<span class="melee-price-note">Prix variable — voir le shop</span>`;
+  } else if (isExclusive) {
+    noteHTML = ` <span class="exc-note">*</span>`;
+  }
 
   return `
     <span class="price-vp">${vpLabel}</span>
-    <span class="price-local">≈ ${esc(localStr)}${noteHTML}</span>`;
+    <span class="price-local">≈ ${esc(localStr)}</span>
+    ${noteHTML}`;
 }
 
 /* ── RENDER GRID ─────────────────────────────────────────────── */
@@ -1184,7 +1252,10 @@ function render() {
         <div class="card-name" title="${esc(s.name)}">${esc(s.name)}</div>
         <div class="card-badges">
           <span class="badge" style="background:${esc(s.tier.color)}22;color:${esc(s.tier.color)};border:1px solid ${esc(s.tier.color)}44">${esc(s.tier.label)}</span>
-          <span class="badge" style="background:rgba(123,158,185,.1);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(s.weapon)}</span>
+          ${s.tier.isMelee
+            ? `<span class="badge badge-melee">🔪 MELEE</span>`
+            : `<span class="badge" style="background:rgba(123,158,185,.1);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(s.weapon)}</span>`
+          }
         </div>
         <div class="card-footer">
           <div class="card-price">${priceHTML(s)}</div>
@@ -1257,7 +1328,10 @@ function updateWishlistUI() {
         : `<div class="wl-item-img"></div>`}
       <div class="wl-item-info">
         <div class="wl-item-name">${esc(s.name)}</div>
-        <div class="wl-item-sub">${esc(s.weapon)} · <span style="color:${esc(s.tier.color)}">${esc(s.tier.label)}</span></div>
+        <div class="wl-item-sub">
+          ${s.tier.isMelee ? '<span class="wl-melee-tag">🔪 MELEE</span> · ' : esc(s.weapon) + ' · '}
+          <span style="color:${esc(s.tier.color)}">${esc(s.tier.label)}</span>
+        </div>
       </div>
       <div class="wl-item-price">
         ${s.tier.vp} VP
