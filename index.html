@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VALOSKINS — Catalogue de skins Valorant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── RESET & ROOT ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0F1923;
+      --bg2:        #111D27;
+      --bg3:        #162433;
+      --surface:    rgba(22,36,51,0.75);
+      --red:        #FF4655;
+      --red-dim:    rgba(255,70,85,0.15);
+      --red-glow:   rgba(255,70,85,0.45);
+      --white:      #ECE8E1;
+      --muted:      #7B9EB9;
+      --border:     rgba(123,158,185,0.15);
+      --header-h:   62px;
+
+      /* rareté */
+      --c-select:   #4ade80;
+      --c-deluxe:   #60a5fa;
+      --c-premium:  #c084fc;
+      --c-ultra:    #fbbf24;
+      --c-exclusive:#FF4655;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background-color: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── GEOMETRIC GRID BACKGROUND ────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(123,158,185,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(123,158,185,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,70,85,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─── HEADER ────────────────────────────────────────────── */
+    #header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--header-h);
+      background: rgba(10,16,22,0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+    }
+
+    .logo {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      user-select: none;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .logo span:first-child { color: var(--white); }
+    .logo span:last-child  { color: var(--red); }
+    .logo::after {
+      content: '';
+      display: inline-block;
+      width: 2px; height: 20px;
+      background: var(--red);
+      margin-left: 12px;
+      vertical-align: middle;
+      transform: skewX(-12deg);
+      opacity: .6;
+    }
+
+    #search-wrap {
+      flex: 1;
+      max-width: 340px;
+      position: relative;
+    }
+    #search-wrap svg {
+      position: absolute;
+      left: 10px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+    #search {
+      width: 100%;
+      background: rgba(22,36,51,0.8);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 12px 8px 34px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: .85rem;
+      letter-spacing: .03em;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    #search::placeholder { color: var(--muted); }
+    #search:focus {
+      border-color: rgba(255,70,85,.5);
+      box-shadow: 0 0 0 3px rgba(255,70,85,.08);
+    }
+
+    /* ─── REGION / CURRENCY SELECTORS ──────────────────────── */
+    .header-select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .header-select-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .65rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .header-select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 6px 26px 6px 9px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: .8rem;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5L9 0z' fill='%237B9EB9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      transition: border-color .15s;
+      min-width: 0;
+    }
+    .header-select:focus { border-color: rgba(255,70,85,.4); }
+    .header-select:hover { border-color: rgba(123,158,185,.35); }
+
+    /* rates status dot */
+    #rates-status {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--muted);
+      title: '';
+    }
+    #rates-status.live  { background: #4ade80; }
+    #rates-status.fail  { background: var(--red); }
+
+    #wishlist-btn {
+      position: relative;
+      margin-left: auto;
+      background: rgba(255,70,85,.1);
+      border: 1px solid rgba(255,70,85,.3);
+      border-radius: 4px;
+      padding: 7px 14px;
+      color: var(--red);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .88rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: background .2s, border-color .2s, transform .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #wishlist-btn:hover {
+      background: rgba(255,70,85,.2);
+      border-color: var(--red);
+      transform: translateY(-1px);
+    }
+    #wl-count {
+      background: var(--red);
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .7rem;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      padding: 0 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #wl-count.bump { animation: bump .3s ease; }
+    @keyframes bump {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.5); }
+      100% { transform: scale(1); }
+    }
+
+    /* ─── LAYOUT ────────────────────────────────────────────── */
+    #app {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: calc(100vh - var(--header-h));
+    }
+
+    /* ─── SIDEBAR ───────────────────────────────────────────── */
+    #sidebar {
+      width: 234px;
+      flex-shrink: 0;
+      position: sticky;
+      top: var(--header-h);
+      height: calc(100vh - var(--header-h));
+      overflow-y: auto;
+      padding: 20px 15px 32px;
+      border-right: 1px solid var(--border);
+      background: rgba(10,16,22,0.5);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .filter-section { margin-bottom: 22px; }
+    .filter-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .filter-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    #sort-select {
+      width: 100%;
+      background: rgba(22,36,51,0.8);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 7px 10px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: .82rem;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237B9EB9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .filter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 170px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .filter-list::-webkit-scrollbar { width: 3px; }
+    .filter-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 7px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background .15s;
+      font-size: .8rem;
+      color: var(--white);
+      user-select: none;
+    }
+    .filter-item:hover { background: rgba(255,255,255,.05); }
+    .filter-item input[type=checkbox] { display: none; }
+    .filter-item .cb-box {
+      width: 14px; height: 14px;
+      border: 1.5px solid var(--muted);
+      border-radius: 2px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, border-color .15s;
+    }
+    .filter-item input:checked + .cb-box {
+      background: var(--red);
+      border-color: var(--red);
+    }
+    .filter-item input:checked + .cb-box::after {
+      content: '';
+      width: 8px; height: 5px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+    }
+    .rarity-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    #reset-btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--muted);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .8rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    #reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ─── MAIN CONTENT ──────────────────────────────────────── */
+    #main {
+      flex: 1;
+      padding: 22px;
+      min-width: 0;
+    }
+
+    #results-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    #results-count {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .8rem;
+      letter-spacing: .1em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    #results-count strong { color: var(--white); }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 15px;
+    }
+
+    /* ─── CARD ──────────────────────────────────────────────── */
+    .card {
+      position: relative;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: default;
+      transition: transform .22s ease, box-shadow .22s ease;
+      animation: fadeUp .4s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card:hover { transform: translateY(-5px); }
+
+    .card-bar { height: 3px; width: 100%; flex-shrink: 0; }
+
+    .card-img {
+      width: 100%;
+      aspect-ratio: 16/7;
+      background: rgba(0,0,0,.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .card-img img {
+      width: 90%;
+      height: 100%;
+      object-fit: contain;
+      padding: 8px;
+      transition: transform .3s ease;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,.6));
+    }
+    .card:hover .card-img img { transform: scale(1.06); }
+
+    .img-fallback {
+      width: 56px; height: 56px;
+      opacity: .12;
+      display: none;
+    }
+
+    .card-body {
+      padding: 10px 11px 11px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 6px;
+    }
+    .card-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .98rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      line-height: 1.2;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+    }
+    .card-price { display: flex; flex-direction: column; gap: 1px; }
+    .price-vp {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .92rem;
+      font-weight: 700;
+      color: var(--white);
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .price-vp .vp-asterisk {
+      font-size: .65rem;
+      color: var(--muted);
+      cursor: help;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+    }
+    .price-local {
+      font-size: .68rem;
+      color: var(--muted);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: .03em;
+    }
+    .price-local .exc-note {
+      font-size: .6rem;
+      color: rgba(255,70,85,.6);
+    }
+
+    .wl-btn {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 4px 5px;
+      border-radius: 4px;
+      transition: transform .2s, background .15s;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .wl-btn:hover { background: rgba(255,70,85,.1); transform: scale(1.2); }
+    .wl-btn.in-list { animation: heartPop .3s ease; }
+    @keyframes heartPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.45); }
+      100% { transform: scale(1); }
+    }
+
+    /* Glow per rarity */
+    .card[data-r="select"]:hover   { box-shadow: 0 8px 32px rgba(74,222,128,.25); }
+    .card[data-r="deluxe"]:hover   { box-shadow: 0 8px 32px rgba(96,165,250,.25); }
+    .card[data-r="premium"]:hover  { box-shadow: 0 8px 32px rgba(192,132,252,.25); }
+    .card[data-r="ultra"]:hover    { box-shadow: 0 8px 32px rgba(251,191,36,.25); }
+    .card[data-r="exclusive"]:hover{ box-shadow: 0 8px 32px rgba(255,70,85,.35); }
+
+    /* ─── SPINNER / LOADER ──────────────────────────────────── */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      transition: opacity .4s;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid var(--border);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-logo {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+    }
+    .loader-logo span:first-child { color: var(--white); }
+    .loader-logo span:last-child  { color: var(--red); }
+    .loader-sub {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .78rem;
+      letter-spacing: .2em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* ─── ERROR / EMPTY ─────────────────────────────────────── */
+    #error-box { display: none; padding: 40px; text-align: center; color: var(--muted); }
+    #error-box .err-icon { font-size: 3rem; margin-bottom: 14px; }
+    #error-box h3 { font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; color: var(--red); margin-bottom: 8px; }
+    #error-box p  { font-size: .86rem; }
+    #empty-state { display: none; padding: 60px 20px; text-align: center; color: var(--muted); }
+    #empty-state .empty-icon { font-size: 3.5rem; margin-bottom: 14px; opacity: .35; }
+    #empty-state p { font-family: 'Barlow Condensed', sans-serif; font-size: .95rem; letter-spacing: .1em; text-transform: uppercase; }
+
+    /* ─── WISHLIST PANEL ─────────────────────────────────────── */
+    #wl-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(4px);
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s;
+    }
+    #wl-overlay.open { opacity: 1; pointer-events: all; }
+
+    #wl-panel {
+      position: fixed; top: 0; right: 0;
+      width: 380px; max-width: 100vw; height: 100vh;
+      z-index: 201;
+      background: #0d1820;
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .35s cubic-bezier(.25,.8,.25,1);
+    }
+    #wl-panel.open { transform: translateX(0); }
+
+    .wl-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 17px 18px; border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .wl-header h2 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.05rem; font-weight: 700; letter-spacing: .08em;
+      color: var(--white); flex: 1;
+    }
+    #wl-close {
+      background: none; border: none; color: var(--muted);
+      font-size: 1.2rem; cursor: pointer; padding: 4px 7px;
+      border-radius: 3px; transition: color .15s, background .15s;
+    }
+    #wl-close:hover { color: var(--white); background: rgba(255,255,255,.06); }
+
+    #wl-totals {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      padding: 11px 18px; border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .wl-total-item { display: flex; flex-direction: column; gap: 2px; }
+    .wl-total-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+    }
+    .wl-total-val {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.05rem; font-weight: 700; color: var(--white);
+    }
+    .wl-total-val.red { color: var(--red); }
+
+    #wl-list {
+      flex: 1; overflow-y: auto; padding: 10px 18px;
+      display: flex; flex-direction: column; gap: 7px;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
+    #wl-list::-webkit-scrollbar { width: 4px; }
+    #wl-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .wl-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 9px;
+      background: rgba(22,36,51,.6);
+      border: 1px solid var(--border); border-radius: 4px;
+      animation: fadeUp .25s ease;
+    }
+    .wl-item-img {
+      width: 54px; height: 27px;
+      background: rgba(0,0,0,.3);
+      border-radius: 2px; object-fit: contain; flex-shrink: 0;
+    }
+    .wl-item-info { flex: 1; min-width: 0; }
+    .wl-item-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .86rem; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wl-item-sub {
+      font-size: .68rem; color: var(--muted);
+      font-family: 'Barlow Condensed', sans-serif; letter-spacing: .04em;
+    }
+    .wl-item-price {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .82rem; font-weight: 700; color: var(--white);
+      flex-shrink: 0; text-align: right;
+    }
+    .wl-item-price .wl-local {
+      display: block; font-size: .62rem; color: var(--muted);
+      font-family: 'Barlow Condensed'; font-weight: 400;
+    }
+    .wl-remove {
+      background: none; border: none; color: var(--muted);
+      font-size: .95rem; cursor: pointer; padding: 2px 5px;
+      border-radius: 2px; transition: color .15s, background .15s;
+    }
+    .wl-remove:hover { color: var(--red); background: rgba(255,70,85,.1); }
+
+    #wl-empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; flex: 1; gap: 12px;
+      color: var(--muted); text-align: center; padding: 40px;
+    }
+    #wl-empty .wl-empty-icon { font-size: 3rem; opacity: .28; }
+    #wl-empty p {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .82rem; letter-spacing: .1em; text-transform: uppercase;
+    }
+
+    .wl-footer {
+      padding: 13px 18px; border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+    #wl-clear {
+      width: 100%; padding: 9px;
+      background: rgba(255,70,85,.08);
+      border: 1px solid rgba(255,70,85,.25); border-radius: 3px;
+      color: var(--red);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .8rem; letter-spacing: .1em; text-transform: uppercase;
+      cursor: pointer; transition: background .2s, border-color .2s;
+    }
+    #wl-clear:hover { background: rgba(255,70,85,.18); border-color: var(--red); }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────── */
+    @media (max-width: 980px) {
+      .header-select-label { display: none; }
+    }
+    @media (max-width: 860px) {
+      #sidebar { display: none; }
+      #main { padding: 14px; }
+      #header { gap: 8px; padding: 0 12px; }
+      .logo { font-size: 1.15rem; }
+    }
+    @media (max-width: 600px) {
+      #wl-panel { width: 100vw; }
+      #search-wrap { max-width: none; }
+      .header-select-wrap { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo"><span>VALO</span><span>SKINS</span></div>
+  <div class="spinner"></div>
+  <div class="loader-sub">Chargement des skins…</div>
+</div>
+
+<!-- HEADER -->
+<header id="header">
+  <a class="logo" href="#"><span>VALO</span><span>SKINS</span></a>
+
+  <div id="search-wrap">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input id="search" type="text" placeholder="Skin, arme, collection…" autocomplete="off" spellcheck="false" />
+  </div>
+
+  <!-- Region selector -->
+  <div class="header-select-wrap">
+    <span class="header-select-label">Région</span>
+    <select id="region-select" class="header-select" title="Région de prix">
+      <option value="FR">🇫🇷 France</option>
+      <option value="US">🇺🇸 États-Unis</option>
+      <option value="GB">🇬🇧 Royaume-Uni</option>
+      <option value="TR">🇹🇷 Turquie</option>
+      <option value="BR">🇧🇷 Brésil</option>
+      <option value="RU">🇷🇺 Russie</option>
+      <option value="AU">🇦🇺 Australie</option>
+      <option value="MX">🇲🇽 Mexique</option>
+      <option value="IN">🇮🇳 Inde</option>
+      <option value="SG">🇸🇬 Singapour</option>
+      <option value="CA">🇨🇦 Canada</option>
+      <option value="JP">🇯🇵 Japon</option>
+    </select>
+  </div>
+
+  <!-- Currency selector -->
+  <div class="header-select-wrap">
+    <span class="header-select-label">Devise</span>
+    <select id="currency-select" class="header-select" title="Devise d'affichage">
+      <option value="EUR">EUR €</option>
+      <option value="USD">USD $</option>
+      <option value="GBP">GBP £</option>
+      <option value="TRY">TRY ₺</option>
+      <option value="BRL">BRL R$</option>
+      <option value="RUB">RUB ₽</option>
+      <option value="AUD">AUD A$</option>
+      <option value="MXN">MXN $</option>
+      <option value="INR">INR ₹</option>
+      <option value="SGD">SGD S$</option>
+      <option value="CAD">CAD C$</option>
+      <option value="JPY">JPY ¥</option>
+      <option value="CHF">CHF Fr</option>
+    </select>
+    <span id="rates-status" title="Taux de change"></span>
+  </div>
+
+  <button id="wishlist-btn">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </svg>
+    Wishlist
+    <span id="wl-count">0</span>
+  </button>
+</header>
+
+<!-- WISHLIST OVERLAY + PANEL -->
+<div id="wl-overlay"></div>
+<aside id="wl-panel">
+  <div class="wl-header">
+    <h2>❤ MA WISHLIST</h2>
+    <button id="wl-close">✕</button>
+  </div>
+  <div id="wl-totals">
+    <div class="wl-total-item">
+      <span class="wl-total-label">Total VP</span>
+      <span class="wl-total-val red" id="wl-total-vp">0 VP</span>
+    </div>
+    <div class="wl-total-item">
+      <span class="wl-total-label">Total <span id="wl-currency-label">EUR</span></span>
+      <span class="wl-total-val" id="wl-total-local">0,00 €</span>
+    </div>
+    <div class="wl-total-item">
+      <span class="wl-total-label">Skins</span>
+      <span class="wl-total-val" id="wl-total-nb">0</span>
+    </div>
+  </div>
+  <div id="wl-list"></div>
+  <div id="wl-empty">
+    <div class="wl-empty-icon">🤍</div>
+    <p>Votre wishlist est vide<br/>Ajoutez des skins depuis le catalogue</p>
+  </div>
+  <div class="wl-footer">
+    <button id="wl-clear">Vider la wishlist</button>
+  </div>
+</aside>
+
+<!-- APP -->
+<div id="app">
+  <aside id="sidebar">
+    <div class="filter-section">
+      <div class="filter-title">Trier par</div>
+      <select id="sort-select">
+        <option value="name-asc">Nom A → Z</option>
+        <option value="name-desc">Nom Z → A</option>
+        <option value="price-asc">Prix croissant</option>
+        <option value="price-desc">Prix décroissant</option>
+        <option value="rarity-asc">Rareté croissante</option>
+        <option value="rarity-desc">Rareté décroissante</option>
+      </select>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Rareté</div>
+      <div class="filter-list" id="rarity-filters">
+        <label class="filter-item">
+          <input type="checkbox" value="select" /><span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-select)"></span>Select
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" value="deluxe" /><span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-deluxe)"></span>Deluxe
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" value="premium" /><span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-premium)"></span>Premium Edition
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" value="ultra" /><span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-ultra)"></span>Ultra Edition
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" value="exclusive" /><span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-exclusive)"></span>Exclusive
+        </label>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Arme</div>
+      <div class="filter-list" id="weapon-filters"></div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Collection</div>
+      <div class="filter-list" id="collection-filters"></div>
+    </div>
+
+    <button id="reset-btn">↺ Réinitialiser</button>
+  </aside>
+
+  <main id="main">
+    <div id="results-bar">
+      <span id="results-count">Chargement…</span>
+    </div>
+    <div id="error-box">
+      <div class="err-icon">⚠️</div>
+      <h3>Erreur de chargement</h3>
+      <p>Impossible de contacter l'API Valorant.<br/>Vérifiez votre connexion et rechargez la page.</p>
+    </div>
+    <div id="empty-state">
+      <div class="empty-icon">🔍</div>
+      <p>Aucun skin ne correspond à vos filtres</p>
+    </div>
+    <div id="grid"></div>
+  </main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   VALOSKINS — vanilla JS  v2 (région + devise + Exclusive fix)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── RARITY MAP ─────────────────────────────────────────────── */
+/*  Exclusive VP = 2175 (base) — variable bundle (2175–2675 VP)  */
+const TIERS = {
+  '12683d76-48d7-84a3-4e09-6985794f0445': { key:'select',    label:'Select',           vp:875,  color:'#4ade80', exclusive:false },
+  '0cebb8be-46d7-c12a-be0d-9acbac1d48c4': { key:'deluxe',    label:'Deluxe',           vp:1275, color:'#60a5fa', exclusive:false },
+  '60bca009-4182-7998-dee7-b8a2558dc369': { key:'premium',   label:'Premium Edition',  vp:1775, color:'#c084fc', exclusive:false },
+  '411e4a55-4e59-7757-41f0-86a53f101bb5': { key:'ultra',     label:'Ultra Edition',    vp:2475, color:'#fbbf24', exclusive:false },
+  'e046854e-406c-37f4-6607-19a9ba8426fc': { key:'exclusive', label:'Exclusive',        vp:2175, color:'#FF4655', exclusive:true  },
+};
+const TIER_ORDER = ['select','deluxe','premium','ultra','exclusive'];
+
+/* ── REGIONS ────────────────────────────────────────────────── */
+const REGIONS = {
+  FR: { name:'🇫🇷 France',       currency:'EUR', per1000:9.99  },
+  US: { name:'🇺🇸 États-Unis',   currency:'USD', per1000:9.99  },
+  GB: { name:'🇬🇧 Royaume-Uni',  currency:'GBP', per1000:9.00  },
+  TR: { name:'🇹🇷 Turquie',      currency:'TRY', per1000:82.35 },
+  BR: { name:'🇧🇷 Brésil',       currency:'BRL', per1000:35.58 },
+  RU: { name:'🇷🇺 Russie',       currency:'RUB', per1000:659   },
+  AU: { name:'🇦🇺 Australie',    currency:'AUD', per1000:15.22 },
+  MX: { name:'🇲🇽 Mexique',      currency:'MXN', per1000:180   },
+  IN: { name:'🇮🇳 Inde',         currency:'INR', per1000:898   },
+  SG: { name:'🇸🇬 Singapour',    currency:'SGD', per1000:13.96 },
+  CA: { name:'🇨🇦 Canada',       currency:'CAD', per1000:13.49 },
+  JP: { name:'🇯🇵 Japon',        currency:'JPY', per1000:1500  },
+};
+
+/* ── CURRENCY SYMBOLS ───────────────────────────────────────── */
+const SYM = {
+  EUR:'€', USD:'$', GBP:'£', TRY:'₺', BRL:'R$', RUB:'₽',
+  AUD:'A$', MXN:'$', INR:'₹', SGD:'S$', CAD:'C$', JPY:'¥', CHF:'Fr',
+};
+
+/* ── EUR FALLBACK RATES (if API fails) ──────────────────────── */
+const FALLBACK_RATES = {
+  EUR:1, USD:1.08, GBP:0.86, TRY:35.0, BRL:5.4, RUB:98.0,
+  AUD:1.66, MXN:18.5, INR:90.0, SGD:1.46, CAD:1.47, JPY:163.0, CHF:0.97,
+};
+
+/* ── STATE ──────────────────────────────────────────────────── */
+let allSkins      = [];
+let wishlist      = JSON.parse(localStorage.getItem('valo-wl') || '[]');
+let fxRates       = null;   /* rates from API (base EUR) or fallback */
+let selectedRegion   = 'FR';
+let selectedCurrency = 'EUR';
+
+let fRarities    = new Set();
+let fWeapons     = new Set();
+let fCollections = new Set();
+let fSort        = 'name-asc';
+let fSearch      = '';
+
+/* ── DOM ────────────────────────────────────────────────────── */
+const $loader       = document.getElementById('loader');
+const $grid         = document.getElementById('grid');
+const $search       = document.getElementById('search');
+const $sort         = document.getElementById('sort-select');
+const $rCount       = document.getElementById('results-count');
+const $errBox       = document.getElementById('error-box');
+const $empty        = document.getElementById('empty-state');
+const $weaponF      = document.getElementById('weapon-filters');
+const $collF        = document.getElementById('collection-filters');
+const $wlBtn        = document.getElementById('wishlist-btn');
+const $wlCount      = document.getElementById('wl-count');
+const $wlPanel      = document.getElementById('wl-panel');
+const $wlOverlay    = document.getElementById('wl-overlay');
+const $wlClose      = document.getElementById('wl-close');
+const $wlList       = document.getElementById('wl-list');
+const $wlEmpty      = document.getElementById('wl-empty');
+const $wlTotalVp    = document.getElementById('wl-total-vp');
+const $wlTotalLocal = document.getElementById('wl-total-local');
+const $wlTotalNb    = document.getElementById('wl-total-nb');
+const $wlCurrLabel  = document.getElementById('wl-currency-label');
+const $wlClear      = document.getElementById('wl-clear');
+const $resetBtn     = document.getElementById('reset-btn');
+const $regionSel    = document.getElementById('region-select');
+const $currSel      = document.getElementById('currency-select');
+const $ratesStatus  = document.getElementById('rates-status');
+
+/* ── ESCAPE HELPER ──────────────────────────────────────────── */
+function esc(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── PRICE CALCULATION ──────────────────────────────────────── */
+/**
+ * Converts a VP amount to the displayed currency.
+ * Steps:
+ *   1. price in region's local currency  = (vp / 1000) * region.per1000
+ *   2. convert to display currency via EUR as pivot:
+ *      a. local → EUR  = local / rates[localCurrency]
+ *      b. EUR → display = EUR * rates[displayCurrency]
+ */
+function vpToDisplay(vp) {
+  const region   = REGIONS[selectedRegion];
+  const rates    = fxRates || FALLBACK_RATES;
+  const localCur = region.currency;
+  const priceLocal = (vp / 1000) * region.per1000;
+
+  /* pivot through EUR */
+  const priceEur  = priceLocal / (rates[localCur] || 1);
+  const priceDisp = priceEur * (rates[selectedCurrency] || 1);
+
+  return priceDisp;
+}
+
+function formatPrice(amount, currency) {
+  const sym = SYM[currency] || currency;
+  /* JPY, INR, RUB: no decimals */
+  const noDecimals = ['JPY','INR','RUB','MXN'].includes(currency);
+  if (noDecimals) {
+    return Math.round(amount).toLocaleString('fr-FR') + '\u202f' + sym;
+  }
+  return amount.toLocaleString('fr-FR', { minimumFractionDigits:2, maximumFractionDigits:2 }) + '\u202f' + sym;
+}
+
+/* ── FETCH EXCHANGE RATES ───────────────────────────────────── */
+async function fetchRates() {
+  try {
+    const res  = await fetch('https://api.frankfurter.app/latest?from=EUR');
+    const data = await res.json();
+    /* data.rates has EUR-based rates; add EUR itself */
+    fxRates = { EUR: 1, ...data.rates };
+    $ratesStatus.className = 'live';
+    $ratesStatus.title = 'Taux de change en temps réel';
+  } catch {
+    fxRates = { ...FALLBACK_RATES };
+    $ratesStatus.className = 'fail';
+    $ratesStatus.title = 'Taux de change hors-ligne (fallback)';
+  }
+}
+
+/* ── FETCH SKINS + THEMES ───────────────────────────────────── */
+async function init() {
+  try {
+    /* All 3 in parallel */
+    const [weaponsRes, themesRes] = await Promise.all([
+      fetch('https://valorant-api.com/v1/weapons'),
+      fetch('https://valorant-api.com/v1/themes'),
+    ]);
+    /* Rates can fail silently — we have fallback */
+    await fetchRates();
+
+    const [weaponsData, themesData] = await Promise.all([
+      weaponsRes.json(),
+      themesRes.json(),
+    ]);
+
+    /* Build theme name map */
+    const themeMap = {};
+    (themesData.data || []).forEach(t => { themeMap[t.uuid] = t.displayName; });
+
+    /* Flatten skins */
+    const skins = [];
+    (weaponsData.data || []).forEach(weapon => {
+      (weapon.skins || []).forEach(skin => {
+        if (!skin.contentTierUuid) return;
+        if (!TIERS[skin.contentTierUuid]) return;
+        if ((skin.displayName || '').toLowerCase().includes('standard')) return;
+
+        const tier = TIERS[skin.contentTierUuid];
+        const img  = skin.displayIcon
+          || (skin.chromas && skin.chromas[0] && skin.chromas[0].displayIcon)
+          || null;
+        const col  = skin.themeUuid ? (themeMap[skin.themeUuid] || 'Unknown') : 'Unknown';
+
+        skins.push({
+          uuid:       skin.uuid,
+          name:       skin.displayName,
+          weapon:     weapon.displayName,
+          collection: col,
+          tier,
+          img,
+        });
+      });
+    });
+
+    allSkins = skins;
+    buildDynamicFilters();
+    hideLoader();
+    render();
+    updateWishlistUI();
+  } catch (e) {
+    console.error(e);
+    hideLoader();
+    $errBox.style.display = 'block';
+  }
+}
+
+function hideLoader() {
+  $loader.classList.add('hidden');
+  setTimeout(() => { $loader.style.display = 'none'; }, 420);
+}
+
+/* ── DYNAMIC FILTERS ─────────────────────────────────────────── */
+function buildDynamicFilters() {
+  const weapons = [...new Set(allSkins.map(s => s.weapon))].sort();
+  $weaponF.innerHTML = weapons.map(w => `
+    <label class="filter-item">
+      <input type="checkbox" value="${esc(w)}" /><span class="cb-box"></span>${esc(w)}
+    </label>`).join('');
+
+  const cols = [...new Set(allSkins.map(s => s.collection))].sort();
+  $collF.innerHTML = cols.map(c => `
+    <label class="filter-item">
+      <input type="checkbox" value="${esc(c)}" /><span class="cb-box"></span>${esc(c)}
+    </label>`).join('');
+
+  $weaponF.addEventListener('change', e => {
+    if (e.target.type !== 'checkbox') return;
+    e.target.checked ? fWeapons.add(e.target.value) : fWeapons.delete(e.target.value);
+    render();
+  });
+  $collF.addEventListener('change', e => {
+    if (e.target.type !== 'checkbox') return;
+    e.target.checked ? fCollections.add(e.target.value) : fCollections.delete(e.target.value);
+    render();
+  });
+}
+
+/* ── FILTER + SORT ───────────────────────────────────────────── */
+function getFiltered() {
+  let list = allSkins.filter(s => {
+    if (fRarities.size    && !fRarities.has(s.tier.key))      return false;
+    if (fWeapons.size     && !fWeapons.has(s.weapon))         return false;
+    if (fCollections.size && !fCollections.has(s.collection)) return false;
+    if (fSearch) {
+      const q = fSearch.toLowerCase();
+      if (!s.name.toLowerCase().includes(q) &&
+          !s.weapon.toLowerCase().includes(q) &&
+          !s.collection.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  list.sort((a, b) => {
+    switch (fSort) {
+      case 'name-asc':    return a.name.localeCompare(b.name);
+      case 'name-desc':   return b.name.localeCompare(a.name);
+      case 'price-asc':   return a.tier.vp - b.tier.vp;
+      case 'price-desc':  return b.tier.vp - a.tier.vp;
+      case 'rarity-asc':  return TIER_ORDER.indexOf(a.tier.key) - TIER_ORDER.indexOf(b.tier.key);
+      case 'rarity-desc': return TIER_ORDER.indexOf(b.tier.key) - TIER_ORDER.indexOf(a.tier.key);
+    }
+    return 0;
+  });
+  return list;
+}
+
+/* ── PRICE HTML FOR CARD ─────────────────────────────────────── */
+function priceHTML(s) {
+  const isExclusive = s.tier.exclusive;
+  const vpLabel = isExclusive
+    ? `${s.tier.vp} VP <span class="vp-asterisk" title="Prix variable selon le bundle (2 175 – 2 675 VP)">*</span>`
+    : `${s.tier.vp} VP`;
+
+  const localAmount = vpToDisplay(s.tier.vp);
+  const localStr    = formatPrice(localAmount, selectedCurrency);
+
+  const noteHTML = isExclusive
+    ? ` <span class="exc-note">*</span>`
+    : '';
+
+  return `
+    <span class="price-vp">${vpLabel}</span>
+    <span class="price-local">≈ ${esc(localStr)}${noteHTML}</span>`;
+}
+
+/* ── RENDER GRID ─────────────────────────────────────────────── */
+function render() {
+  const list = getFiltered();
+  $errBox.style.display = 'none';
+  $empty.style.display  = list.length ? 'none' : 'flex';
+  $rCount.innerHTML = `<strong>${list.length}</strong> skins affichés sur <strong>${allSkins.length}</strong>`;
+
+  $grid.innerHTML = list.map((s, i) => {
+    const inWl  = wishlist.includes(s.uuid);
+    const delay = Math.min(i * 28, 300);
+    const img   = s.img
+      ? `<img src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" /><svg class="img-fallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`
+      : `<svg class="img-fallback" style="display:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`;
+
+    return `
+    <div class="card" data-r="${esc(s.tier.key)}" data-uuid="${esc(s.uuid)}" style="animation-delay:${delay}ms">
+      <div class="card-bar" style="background:${esc(s.tier.color)}"></div>
+      <div class="card-img">${img}</div>
+      <div class="card-body">
+        <div class="card-name" title="${esc(s.name)}">${esc(s.name)}</div>
+        <div class="card-badges">
+          <span class="badge" style="background:${esc(s.tier.color)}22;color:${esc(s.tier.color)};border:1px solid ${esc(s.tier.color)}44">${esc(s.tier.label)}</span>
+          <span class="badge" style="background:rgba(123,158,185,.1);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(s.weapon)}</span>
+        </div>
+        <div class="card-footer">
+          <div class="card-price">${priceHTML(s)}</div>
+          <button class="wl-btn ${inWl ? 'in-list' : ''}" data-uuid="${esc(s.uuid)}"
+            title="${inWl ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}" aria-label="Wishlist">
+            ${inWl ? '❤️' : '🤍'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── WISHLIST LOGIC ──────────────────────────────────────────── */
+function saveWishlist() {
+  localStorage.setItem('valo-wl', JSON.stringify(wishlist));
+}
+
+function toggleWishlist(uuid) {
+  const idx = wishlist.indexOf(uuid);
+  if (idx === -1) wishlist.push(uuid);
+  else wishlist.splice(idx, 1);
+  saveWishlist();
+  updateWishlistUI();
+
+  const btn = $grid.querySelector(`.wl-btn[data-uuid="${uuid}"]`);
+  if (btn) {
+    const inWl = wishlist.includes(uuid);
+    btn.textContent = inWl ? '❤️' : '🤍';
+    btn.title = inWl ? 'Retirer de la wishlist' : 'Ajouter à la wishlist';
+    btn.classList.toggle('in-list', inWl);
+    if (inWl) { btn.classList.remove('in-list'); void btn.offsetWidth; btn.classList.add('in-list'); }
+  }
+}
+
+function updateWishlistUI() {
+  const count = wishlist.length;
+  $wlCount.textContent = count;
+  $wlCount.classList.remove('bump');
+  void $wlCount.offsetWidth;
+  $wlCount.classList.add('bump');
+
+  const sym = SYM[selectedCurrency] || selectedCurrency;
+  $wlCurrLabel.textContent = selectedCurrency;
+
+  const items = wishlist.map(uuid => allSkins.find(s => s.uuid === uuid)).filter(Boolean);
+  let totalVp = 0, totalDisp = 0;
+  items.forEach(s => {
+    totalVp   += s.tier.vp;
+    totalDisp += vpToDisplay(s.tier.vp);
+  });
+
+  $wlTotalVp.textContent    = totalVp.toLocaleString('fr-FR') + ' VP';
+  $wlTotalLocal.textContent = formatPrice(totalDisp, selectedCurrency);
+  $wlTotalNb.textContent    = count;
+
+  if (!count) {
+    $wlList.innerHTML = '';
+    $wlEmpty.style.display = 'flex';
+    return;
+  }
+  $wlEmpty.style.display = 'none';
+  $wlList.innerHTML = items.map(s => {
+    const dispAmt = vpToDisplay(s.tier.vp);
+    const dispStr = formatPrice(dispAmt, selectedCurrency);
+    return `
+    <div class="wl-item">
+      ${s.img
+        ? `<img class="wl-item-img" src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" onerror="this.style.display='none'" />`
+        : `<div class="wl-item-img"></div>`}
+      <div class="wl-item-info">
+        <div class="wl-item-name">${esc(s.name)}</div>
+        <div class="wl-item-sub">${esc(s.weapon)} · <span style="color:${esc(s.tier.color)}">${esc(s.tier.label)}</span></div>
+      </div>
+      <div class="wl-item-price">
+        ${s.tier.vp} VP
+        <span class="wl-local">≈ ${esc(dispStr)}</span>
+      </div>
+      <button class="wl-remove" data-uuid="${esc(s.uuid)}" title="Retirer">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ── EVENT LISTENERS ─────────────────────────────────────────── */
+
+/* Grid delegation */
+$grid.addEventListener('click', e => {
+  const btn = e.target.closest('.wl-btn');
+  if (btn) toggleWishlist(btn.dataset.uuid);
+});
+
+/* Rarity filters */
+document.getElementById('rarity-filters').addEventListener('change', e => {
+  if (e.target.type !== 'checkbox') return;
+  e.target.checked ? fRarities.add(e.target.value) : fRarities.delete(e.target.value);
+  render();
+});
+
+/* Search */
+$search.addEventListener('input', e => { fSearch = e.target.value.trim(); render(); });
+
+/* Sort */
+$sort.addEventListener('change', e => { fSort = e.target.value; render(); });
+
+/* Region */
+$regionSel.addEventListener('change', e => {
+  selectedRegion = e.target.value;
+  render();
+  updateWishlistUI();
+});
+
+/* Currency */
+$currSel.addEventListener('change', e => {
+  selectedCurrency = e.target.value;
+  render();
+  updateWishlistUI();
+});
+
+/* Reset */
+$resetBtn.addEventListener('click', () => {
+  fRarities.clear(); fWeapons.clear(); fCollections.clear();
+  fSearch = ''; fSort = 'name-asc';
+  $search.value = '';
+  $sort.value = 'name-asc';
+  document.querySelectorAll('#rarity-filters input, #weapon-filters input, #collection-filters input')
+    .forEach(el => el.checked = false);
+  render();
+});
+
+/* Wishlist panel */
+function openWL() {
+  $wlPanel.classList.add('open');
+  $wlOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeWL() {
+  $wlPanel.classList.remove('open');
+  $wlOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+$wlBtn.addEventListener('click', openWL);
+$wlClose.addEventListener('click', closeWL);
+$wlOverlay.addEventListener('click', closeWL);
+
+$wlList.addEventListener('click', e => {
+  const btn = e.target.closest('.wl-remove');
+  if (btn) { toggleWishlist(btn.dataset.uuid); render(); }
+});
+
+$wlClear.addEventListener('click', () => {
+  wishlist = [];
+  saveWishlist();
+  updateWishlistUI();
+  render();
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeWL(); });
+
+/* ── BOOT ────────────────────────────────────────────────────── */
+init();
+</script>
+</body>
+</html>
