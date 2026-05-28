@@ -29,7 +29,7 @@
       --c-deluxe:   #60a5fa;
       --c-premium:  #c084fc;
       --c-ultra:    #fbbf24;
-      --c-exclusive:#FF4655;
+      --c-exclusive:#f97316;
     }
 
     html { scroll-behavior: smooth; }
@@ -549,7 +549,7 @@
     .card[data-r="deluxe"]:hover   { box-shadow: 0 8px 32px rgba(96,165,250,.25); }
     .card[data-r="premium"]:hover  { box-shadow: 0 8px 32px rgba(192,132,252,.25); }
     .card[data-r="ultra"]:hover    { box-shadow: 0 8px 32px rgba(251,191,36,.25); }
-    .card[data-r="exclusive"]:hover{ box-shadow: 0 8px 32px rgba(255,70,85,.35); }
+    .card[data-r="exclusive"]:hover{ box-shadow: 0 8px 32px rgba(249,115,22,.35); }
 
     /* ─── SPINNER / LOADER ──────────────────────────────────── */
     #loader {
@@ -687,6 +687,10 @@
     .wl-melee-tag {
       color: #ffc107;
       font-weight: 700;
+    }
+    .filter-item-melee {
+      color: #ffc107 !important;
+      font-weight: 600;
     }
     .wl-item-price {
       font-family: 'Rajdhani', sans-serif;
@@ -877,12 +881,12 @@
           <span class="rarity-dot" style="background:var(--c-premium)"></span>Premium Edition
         </label>
         <label class="filter-item">
-          <input type="checkbox" value="ultra" /><span class="cb-box"></span>
-          <span class="rarity-dot" style="background:var(--c-ultra)"></span>Ultra Edition
-        </label>
-        <label class="filter-item">
           <input type="checkbox" value="exclusive" /><span class="cb-box"></span>
           <span class="rarity-dot" style="background:var(--c-exclusive)"></span>Exclusive
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" value="ultra" /><span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-ultra)"></span>Ultra Edition
         </label>
       </div>
     </div>
@@ -928,7 +932,7 @@ const TIERS = {
   '0cebb8be-46d7-c12a-be0d-9acbac1d48c4': { key:'deluxe',    label:'Deluxe',           color:'#60a5fa', exclusive:false },
   '60bca009-4182-7998-dee7-b8a2558dc369': { key:'premium',   label:'Premium Edition',  color:'#c084fc', exclusive:false },
   '411e4a55-4e59-7757-41f0-86a53f101bb5': { key:'ultra',     label:'Ultra Edition',    color:'#fbbf24', exclusive:false },
-  'e046854e-406c-37f4-6607-19a9ba8426fc': { key:'exclusive', label:'Exclusive',        color:'#FF4655', exclusive:true  },
+  'e046854e-406c-37f4-6607-19a9ba8426fc': { key:'exclusive', label:'Exclusive',        color:'#f97316', exclusive:true  },
 };
 
 /* ── PRIX ARMES CLASSIQUES (875 – 2475 VP) ───────────────────── */
@@ -949,7 +953,7 @@ const MELEE_PRICE = {
   'exclusive': { vp: 4350, eur: 43.49 },
   'ultra':     { vp: 4950, eur: 49.49 },
 };
-const TIER_ORDER = ['select','deluxe','premium','ultra','exclusive'];
+const TIER_ORDER = ['select','deluxe','premium','exclusive','ultra'];
 
 /* ── REGIONS ────────────────────────────────────────────────── */
 const REGIONS = {
@@ -1148,8 +1152,9 @@ function hideLoader() {
 function buildDynamicFilters() {
   const weapons = [...new Set(allSkins.map(s => s.weapon))].sort();
   $weaponF.innerHTML = weapons.map(w => `
-    <label class="filter-item">
-      <input type="checkbox" value="${esc(w)}" /><span class="cb-box"></span>${esc(w)}
+    <label class="filter-item${w === 'Melee' ? ' filter-item-melee' : ''}">
+      <input type="checkbox" value="${esc(w)}" /><span class="cb-box"></span>
+      ${w === 'Melee' ? '🔪 ' : ''}${esc(w)}
     </label>`).join('');
 
   const cols = [...new Set(allSkins.map(s => s.collection))].sort();
