@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VALOSKINS — Catalogue de skins Valorant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── RESET & ROOT ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0F1923;
+      --bg2:        #111D27;
+      --bg3:        #162433;
+      --surface:    rgba(22,36,51,0.75);
+      --red:        #FF4655;
+      --red-dim:    rgba(255,70,85,0.15);
+      --red-glow:   rgba(255,70,85,0.45);
+      --white:      #ECE8E1;
+      --muted:      #7B9EB9;
+      --border:     rgba(123,158,185,0.15);
+      --header-h:   62px;
+
+      /* rareté */
+      --c-select:   #4ade80;
+      --c-deluxe:   #60a5fa;
+      --c-premium:  #c084fc;
+      --c-ultra:    #fbbf24;
+      --c-exclusive:#FF4655;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background-color: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── GEOMETRIC GRID BACKGROUND ────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(123,158,185,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(123,158,185,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,70,85,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─── HEADER ────────────────────────────────────────────── */
+    #header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--header-h);
+      background: rgba(10,16,22,0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px;
+    }
+
+    .logo {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      user-select: none;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .logo span:first-child { color: var(--white); }
+    .logo span:last-child  { color: var(--red); }
+
+    /* diagonal slash accent */
+    .logo::after {
+      content: '';
+      display: inline-block;
+      width: 2px; height: 20px;
+      background: var(--red);
+      margin-left: 12px;
+      vertical-align: middle;
+      transform: skewX(-12deg);
+      opacity: .6;
+    }
+
+    #search-wrap {
+      flex: 1;
+      max-width: 420px;
+      position: relative;
+    }
+    #search-wrap svg {
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+    #search {
+      width: 100%;
+      background: rgba(22,36,51,0.8);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 9px 14px 9px 38px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: .88rem;
+      letter-spacing: .03em;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    #search::placeholder { color: var(--muted); }
+    #search:focus {
+      border-color: rgba(255,70,85,.5);
+      box-shadow: 0 0 0 3px rgba(255,70,85,.08);
+    }
+
+    #wishlist-btn {
+      position: relative;
+      margin-left: auto;
+      background: rgba(255,70,85,.1);
+      border: 1px solid rgba(255,70,85,.3);
+      border-radius: 4px;
+      padding: 8px 16px;
+      color: var(--red);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .9rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background .2s, border-color .2s, transform .15s;
+      white-space: nowrap;
+    }
+    #wishlist-btn:hover {
+      background: rgba(255,70,85,.2);
+      border-color: var(--red);
+      transform: translateY(-1px);
+    }
+    #wl-count {
+      background: var(--red);
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .72rem;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      padding: 0 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s;
+    }
+    #wl-count.bump { animation: bump .3s ease; }
+    @keyframes bump {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.5); }
+      100% { transform: scale(1); }
+    }
+
+    /* ─── LAYOUT ────────────────────────────────────────────── */
+    #app {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: calc(100vh - var(--header-h));
+    }
+
+    /* ─── SIDEBAR ───────────────────────────────────────────── */
+    #sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      position: sticky;
+      top: var(--header-h);
+      height: calc(100vh - var(--header-h));
+      overflow-y: auto;
+      padding: 20px 16px 32px;
+      border-right: 1px solid var(--border);
+      background: rgba(10,16,22,0.5);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .filter-section { margin-bottom: 22px; }
+    .filter-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .filter-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Sort select */
+    #sort-select {
+      width: 100%;
+      background: rgba(22,36,51,0.8);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 7px 10px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: .82rem;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237B9EB9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    /* Checkbox items */
+    .filter-list { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+    .filter-list::-webkit-scrollbar { width: 3px; }
+    .filter-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background .15s;
+      font-size: .82rem;
+      color: var(--white);
+      user-select: none;
+    }
+    .filter-item:hover { background: rgba(255,255,255,.05); }
+    .filter-item input[type=checkbox] { display: none; }
+    .filter-item .cb-box {
+      width: 14px; height: 14px;
+      border: 1.5px solid var(--muted);
+      border-radius: 2px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, border-color .15s;
+    }
+    .filter-item input:checked + .cb-box {
+      background: var(--red);
+      border-color: var(--red);
+    }
+    .filter-item input:checked + .cb-box::after {
+      content: '';
+      width: 8px; height: 5px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+    }
+    .rarity-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    #reset-btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--muted);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .82rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    #reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ─── MAIN CONTENT ──────────────────────────────────────── */
+    #main {
+      flex: 1;
+      padding: 24px;
+      min-width: 0;
+    }
+
+    #results-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    #results-count {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .82rem;
+      letter-spacing: .1em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    #results-count strong { color: var(--white); }
+
+    /* Grid */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 16px;
+    }
+
+    /* ─── CARD ──────────────────────────────────────────────── */
+    .card {
+      position: relative;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: default;
+      transition: transform .22s ease, box-shadow .22s ease;
+      animation: fadeUp .4s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card:hover { transform: translateY(-5px); }
+
+    /* Rarity top bar */
+    .card-bar {
+      height: 3px;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    /* Image zone */
+    .card-img {
+      width: 100%;
+      aspect-ratio: 16/7;
+      background: rgba(0,0,0,.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .card-img img {
+      width: 90%;
+      height: 100%;
+      object-fit: contain;
+      padding: 8px;
+      transition: transform .3s ease;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,.6));
+    }
+    .card:hover .card-img img { transform: scale(1.06); }
+
+    .img-fallback {
+      width: 60px; height: 60px;
+      opacity: .15;
+      display: none;
+    }
+
+    /* Body */
+    .card-body {
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 7px;
+    }
+    .card-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      line-height: 1.2;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+    }
+    .card-price {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .price-vp {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .price-eur {
+      font-size: .7rem;
+      color: var(--muted);
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+
+    .wl-btn {
+      background: none;
+      border: none;
+      font-size: 1.15rem;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: transform .2s, background .15s;
+      line-height: 1;
+    }
+    .wl-btn:hover { background: rgba(255,70,85,.1); transform: scale(1.2); }
+    .wl-btn.in-list { animation: heartPop .3s ease; }
+    @keyframes heartPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.45); }
+      100% { transform: scale(1); }
+    }
+
+    /* Rarity glow on hover */
+    .card[data-r="select"]:hover   { box-shadow: 0 8px 32px rgba(74,222,128,.25); }
+    .card[data-r="deluxe"]:hover   { box-shadow: 0 8px 32px rgba(96,165,250,.25); }
+    .card[data-r="premium"]:hover  { box-shadow: 0 8px 32px rgba(192,132,252,.25); }
+    .card[data-r="ultra"]:hover    { box-shadow: 0 8px 32px rgba(251,191,36,.25); }
+    .card[data-r="exclusive"]:hover{ box-shadow: 0 8px 32px rgba(255,70,85,.35); }
+
+    /* ─── SPINNER ────────────────────────────────────────────── */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      transition: opacity .4s;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+
+    .spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-logo {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+    }
+    .loader-logo span:first-child { color: var(--white); }
+    .loader-logo span:last-child  { color: var(--red); }
+    .loader-sub {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .8rem;
+      letter-spacing: .2em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* ─── ERROR ─────────────────────────────────────────────── */
+    #error-box {
+      display: none;
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+    }
+    #error-box .err-icon { font-size: 3rem; margin-bottom: 16px; }
+    #error-box h3 { font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; color: var(--red); margin-bottom: 8px; }
+    #error-box p  { font-size: .88rem; }
+
+    /* ─── EMPTY STATE ───────────────────────────────────────── */
+    #empty-state {
+      display: none;
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+    #empty-state .empty-icon { font-size: 3.5rem; margin-bottom: 16px; opacity: .4; }
+    #empty-state p { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; letter-spacing: .1em; text-transform: uppercase; }
+
+    /* ─── WISHLIST PANEL ─────────────────────────────────────── */
+    #wl-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+    #wl-overlay.open { opacity: 1; pointer-events: all; }
+
+    #wl-panel {
+      position: fixed;
+      top: 0; right: 0;
+      width: 380px;
+      max-width: 100vw;
+      height: 100vh;
+      z-index: 201;
+      background: #0d1820;
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .35s cubic-bezier(.25,.8,.25,1);
+    }
+    #wl-panel.open { transform: translateX(0); }
+
+    .wl-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .wl-header h2 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--white);
+      flex: 1;
+    }
+    #wl-close {
+      background: none; border: none;
+      color: var(--muted);
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 3px;
+      transition: color .15s, background .15s;
+    }
+    #wl-close:hover { color: var(--white); background: rgba(255,255,255,.06); }
+
+    #wl-totals {
+      display: flex;
+      gap: 16px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .wl-total-item { display: flex; flex-direction: column; gap: 2px; }
+    .wl-total-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .67rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .wl-total-val {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .wl-total-val.red { color: var(--red); }
+
+    #wl-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    #wl-list::-webkit-scrollbar { width: 4px; }
+    #wl-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .wl-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: rgba(22,36,51,.6);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      animation: fadeUp .25s ease;
+    }
+    .wl-item-img {
+      width: 56px; height: 28px;
+      background: rgba(0,0,0,.3);
+      border-radius: 2px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    .wl-item-info { flex: 1; min-width: 0; }
+    .wl-item-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .88rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .wl-item-sub {
+      font-size: .7rem;
+      color: var(--muted);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: .05em;
+    }
+    .wl-item-price {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--white);
+      flex-shrink: 0;
+    }
+    .wl-remove {
+      background: none; border: none;
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px 5px;
+      border-radius: 2px;
+      transition: color .15s, background .15s;
+    }
+    .wl-remove:hover { color: var(--red); background: rgba(255,70,85,.1); }
+
+    #wl-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 40px;
+    }
+    #wl-empty .wl-empty-icon { font-size: 3rem; opacity: .3; }
+    #wl-empty p { font-family: 'Barlow Condensed', sans-serif; font-size: .85rem; letter-spacing: .1em; text-transform: uppercase; }
+
+    .wl-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    #wl-clear {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255,70,85,.08);
+      border: 1px solid rgba(255,70,85,.25);
+      border-radius: 3px;
+      color: var(--red);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .82rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    #wl-clear:hover { background: rgba(255,70,85,.18); border-color: var(--red); }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      #sidebar { display: none; }
+      #main { padding: 16px; }
+      #header { gap: 10px; padding: 0 14px; }
+      .logo { font-size: 1.2rem; }
+    }
+    @media (max-width: 480px) {
+      #wl-panel { width: 100vw; }
+      #search-wrap { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo"><span>VALO</span><span>SKINS</span></div>
+  <div class="spinner"></div>
+  <div class="loader-sub">Chargement des skins…</div>
+</div>
+
+<!-- HEADER -->
+<header id="header">
+  <a class="logo" href="#"><span>VALO</span><span>SKINS</span></a>
+  <div id="search-wrap">
+    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input id="search" type="text" placeholder="Rechercher un skin, une arme, une collection…" autocomplete="off" spellcheck="false" />
+  </div>
+  <button id="wishlist-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    Wishlist
+    <span id="wl-count">0</span>
+  </button>
+</header>
+
+<!-- WISHLIST OVERLAY + PANEL -->
+<div id="wl-overlay"></div>
+<aside id="wl-panel">
+  <div class="wl-header">
+    <h2>❤ MA WISHLIST</h2>
+    <button id="wl-close">✕</button>
+  </div>
+  <div id="wl-totals">
+    <div class="wl-total-item">
+      <span class="wl-total-label">Total VP</span>
+      <span class="wl-total-val red" id="wl-total-vp">0 VP</span>
+    </div>
+    <div class="wl-total-item">
+      <span class="wl-total-label">Estimation €</span>
+      <span class="wl-total-val" id="wl-total-eur">0,00 €</span>
+    </div>
+    <div class="wl-total-item">
+      <span class="wl-total-label">Skins</span>
+      <span class="wl-total-val" id="wl-total-nb">0</span>
+    </div>
+  </div>
+  <div id="wl-list"></div>
+  <div id="wl-empty">
+    <div class="wl-empty-icon">🤍</div>
+    <p>Votre wishlist est vide<br/>Ajoutez des skins depuis le catalogue</p>
+  </div>
+  <div class="wl-footer">
+    <button id="wl-clear">Vider la wishlist</button>
+  </div>
+</aside>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="filter-section">
+      <div class="filter-title">Trier par</div>
+      <select id="sort-select">
+        <option value="name-asc">Nom A → Z</option>
+        <option value="name-desc">Nom Z → A</option>
+        <option value="price-asc">Prix croissant</option>
+        <option value="price-desc">Prix décroissant</option>
+        <option value="rarity-asc">Rareté croissante</option>
+        <option value="rarity-desc">Rareté décroissante</option>
+      </select>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Rareté</div>
+      <div class="filter-list" id="rarity-filters">
+        <label class="filter-item">
+          <input type="checkbox" value="select" />
+          <span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-select)"></span>
+          Select
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" value="deluxe" />
+          <span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-deluxe)"></span>
+          Deluxe
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" value="premium" />
+          <span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-premium)"></span>
+          Premium Edition
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" value="ultra" />
+          <span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-ultra)"></span>
+          Ultra Edition
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" value="exclusive" />
+          <span class="cb-box"></span>
+          <span class="rarity-dot" style="background:var(--c-exclusive)"></span>
+          Exclusive
+        </label>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Arme</div>
+      <div class="filter-list" id="weapon-filters"></div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Collection</div>
+      <div class="filter-list" id="collection-filters"></div>
+    </div>
+
+    <button id="reset-btn">↺ Réinitialiser</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+    <div id="results-bar">
+      <span id="results-count">Chargement…</span>
+    </div>
+    <div id="error-box">
+      <div class="err-icon">⚠️</div>
+      <h3>Erreur de chargement</h3>
+      <p>Impossible de contacter l'API Valorant.<br/>Vérifiez votre connexion et rechargez la page.</p>
+    </div>
+    <div id="empty-state">
+      <div class="empty-icon">🔍</div>
+      <p>Aucun skin ne correspond à vos filtres</p>
+    </div>
+    <div id="grid"></div>
+  </main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   VALOSKINS — vanilla JS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── RARITY MAP ─────────────────────────────────────────────── */
+const TIERS = {
+  '12683d76-48d7-84a3-4e09-6985794f0445': { key:'select',    label:'Select',           vp:875,  eur:8.99,  color:'#4ade80' },
+  '0cebb8be-46d7-c12a-be0d-9acbac1d48c4': { key:'deluxe',    label:'Deluxe',           vp:1275, eur:12.99, color:'#60a5fa' },
+  '60bca009-4182-7998-dee7-b8a2558dc369': { key:'premium',   label:'Premium Edition',  vp:1775, eur:17.99, color:'#c084fc' },
+  '411e4a55-4e59-7757-41f0-86a53f101bb5': { key:'ultra',     label:'Ultra Edition',    vp:2475, eur:24.99, color:'#fbbf24' },
+  'e046854e-406c-37f4-6607-19a9ba8426fc': { key:'exclusive', label:'Exclusive',        vp:2675, eur:26.99, color:'#FF4655' },
+};
+const TIER_ORDER = ['select','deluxe','premium','ultra','exclusive'];
+
+/* ── STATE ──────────────────────────────────────────────────── */
+let allSkins = [];
+let wishlist = JSON.parse(localStorage.getItem('valo-wl') || '[]');
+
+/* active filters */
+let fRarities    = new Set();
+let fWeapons     = new Set();
+let fCollections = new Set();
+let fSort        = 'name-asc';
+let fSearch      = '';
+
+/* ── DOM REFS ───────────────────────────────────────────────── */
+const $loader    = document.getElementById('loader');
+const $grid      = document.getElementById('grid');
+const $search    = document.getElementById('search');
+const $sort      = document.getElementById('sort-select');
+const $rCount    = document.getElementById('results-count');
+const $errBox    = document.getElementById('error-box');
+const $empty     = document.getElementById('empty-state');
+const $weaponF   = document.getElementById('weapon-filters');
+const $collF     = document.getElementById('collection-filters');
+const $wlBtn     = document.getElementById('wishlist-btn');
+const $wlCount   = document.getElementById('wl-count');
+const $wlPanel   = document.getElementById('wl-panel');
+const $wlOverlay = document.getElementById('wl-overlay');
+const $wlClose   = document.getElementById('wl-close');
+const $wlList    = document.getElementById('wl-list');
+const $wlEmpty   = document.getElementById('wl-empty');
+const $wlTotalVp = document.getElementById('wl-total-vp');
+const $wlTotalEur= document.getElementById('wl-total-eur');
+const $wlTotalNb = document.getElementById('wl-total-nb');
+const $wlClear   = document.getElementById('wl-clear');
+const $resetBtn  = document.getElementById('reset-btn');
+
+/* ── ESCAPE HELPER ──────────────────────────────────────────── */
+function esc(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── FETCH & INIT ────────────────────────────────────────────── */
+async function init() {
+  try {
+    const [weaponsRes, themesRes] = await Promise.all([
+      fetch('https://valorant-api.com/v1/weapons'),
+      fetch('https://valorant-api.com/v1/themes'),
+    ]);
+    const [weaponsData, themesData] = await Promise.all([
+      weaponsRes.json(),
+      themesRes.json(),
+    ]);
+
+    /* Build theme name map */
+    const themeMap = {};
+    (themesData.data || []).forEach(t => { themeMap[t.uuid] = t.displayName; });
+
+    /* Flatten skins */
+    const weapons = weaponsData.data || [];
+    const skins = [];
+    weapons.forEach(weapon => {
+      (weapon.skins || []).forEach(skin => {
+        /* exclude base skins */
+        if (!skin.contentTierUuid) return;
+        if (!TIERS[skin.contentTierUuid]) return;
+        if ((skin.displayName || '').toLowerCase().includes('standard')) return;
+
+        const tier = TIERS[skin.contentTierUuid];
+        const img  = skin.displayIcon || (skin.chromas && skin.chromas[0] && skin.chromas[0].displayIcon) || null;
+        const col  = skin.themeUuid ? (themeMap[skin.themeUuid] || 'Unknown') : 'Unknown';
+
+        skins.push({
+          uuid:       skin.uuid,
+          name:       skin.displayName,
+          weapon:     weapon.displayName,
+          collection: col,
+          tier,
+          img,
+        });
+      });
+    });
+
+    allSkins = skins;
+    buildDynamicFilters();
+    hideLoader();
+    render();
+    updateWishlistUI();
+  } catch (e) {
+    console.error(e);
+    hideLoader();
+    $errBox.style.display = 'block';
+  }
+}
+
+function hideLoader() {
+  $loader.classList.add('hidden');
+  setTimeout(() => { $loader.style.display = 'none'; }, 400);
+}
+
+/* ── DYNAMIC FILTERS ─────────────────────────────────────────── */
+function buildDynamicFilters() {
+  /* Weapons */
+  const weapons = [...new Set(allSkins.map(s => s.weapon))].sort();
+  $weaponF.innerHTML = weapons.map(w => `
+    <label class="filter-item">
+      <input type="checkbox" value="${esc(w)}" />
+      <span class="cb-box"></span>
+      ${esc(w)}
+    </label>`).join('');
+
+  /* Collections */
+  const cols = [...new Set(allSkins.map(s => s.collection))].sort();
+  $collF.innerHTML = cols.map(c => `
+    <label class="filter-item">
+      <input type="checkbox" value="${esc(c)}" />
+      <span class="cb-box"></span>
+      ${esc(c)}
+    </label>`).join('');
+
+  /* attach listeners */
+  $weaponF.addEventListener('change', e => {
+    if (e.target.type === 'checkbox') {
+      e.target.checked ? fWeapons.add(e.target.value) : fWeapons.delete(e.target.value);
+      render();
+    }
+  });
+  $collF.addEventListener('change', e => {
+    if (e.target.type === 'checkbox') {
+      e.target.checked ? fCollections.add(e.target.value) : fCollections.delete(e.target.value);
+      render();
+    }
+  });
+}
+
+/* ── FILTER + SORT ───────────────────────────────────────────── */
+function getFiltered() {
+  let list = allSkins.filter(s => {
+    if (fRarities.size    && !fRarities.has(s.tier.key))           return false;
+    if (fWeapons.size     && !fWeapons.has(s.weapon))              return false;
+    if (fCollections.size && !fCollections.has(s.collection))      return false;
+    if (fSearch) {
+      const q = fSearch.toLowerCase();
+      if (!s.name.toLowerCase().includes(q) &&
+          !s.weapon.toLowerCase().includes(q) &&
+          !s.collection.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  list.sort((a, b) => {
+    switch (fSort) {
+      case 'name-asc':     return a.name.localeCompare(b.name);
+      case 'name-desc':    return b.name.localeCompare(a.name);
+      case 'price-asc':    return a.tier.vp - b.tier.vp;
+      case 'price-desc':   return b.tier.vp - a.tier.vp;
+      case 'rarity-asc':   return TIER_ORDER.indexOf(a.tier.key) - TIER_ORDER.indexOf(b.tier.key);
+      case 'rarity-desc':  return TIER_ORDER.indexOf(b.tier.key) - TIER_ORDER.indexOf(a.tier.key);
+    }
+    return 0;
+  });
+  return list;
+}
+
+/* ── RENDER GRID ─────────────────────────────────────────────── */
+function render() {
+  const list = getFiltered();
+  $errBox.style.display  = 'none';
+  $empty.style.display   = list.length ? 'none' : 'flex';
+  $rCount.innerHTML = `<strong>${list.length}</strong> skins affichés sur <strong>${allSkins.length}</strong>`;
+
+  $grid.innerHTML = list.map((s, i) => {
+    const inWl  = wishlist.includes(s.uuid);
+    const delay = Math.min(i * 30, 300);
+    const img   = s.img
+      ? `<img src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" /><svg class="img-fallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`
+      : `<svg class="img-fallback" style="display:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`;
+
+    return `
+    <div class="card" data-r="${esc(s.tier.key)}" data-uuid="${esc(s.uuid)}" style="animation-delay:${delay}ms">
+      <div class="card-bar" style="background:${esc(s.tier.color)}"></div>
+      <div class="card-img">${img}</div>
+      <div class="card-body">
+        <div class="card-name" title="${esc(s.name)}">${esc(s.name)}</div>
+        <div class="card-badges">
+          <span class="badge" style="background:${esc(s.tier.color)}22;color:${esc(s.tier.color)};border:1px solid ${esc(s.tier.color)}44">${esc(s.tier.label)}</span>
+          <span class="badge" style="background:rgba(123,158,185,.1);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(s.weapon)}</span>
+        </div>
+        <div class="card-footer">
+          <div class="card-price">
+            <span class="price-vp">${s.tier.vp} VP</span>
+            <span class="price-eur">≈ ${s.tier.eur.toFixed(2).replace('.',',')} €</span>
+          </div>
+          <button class="wl-btn ${inWl ? 'in-list' : ''}" data-uuid="${esc(s.uuid)}" title="${inWl ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}" aria-label="Wishlist">
+            ${inWl ? '❤️' : '🤍'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── WISHLIST LOGIC ──────────────────────────────────────────── */
+function saveWishlist() {
+  localStorage.setItem('valo-wl', JSON.stringify(wishlist));
+}
+
+function toggleWishlist(uuid) {
+  const idx = wishlist.indexOf(uuid);
+  if (idx === -1) wishlist.push(uuid);
+  else wishlist.splice(idx, 1);
+  saveWishlist();
+  updateWishlistUI();
+
+  /* update card button in-place */
+  const btn = $grid.querySelector(`.wl-btn[data-uuid="${uuid}"]`);
+  if (btn) {
+    const inWl = wishlist.includes(uuid);
+    btn.textContent  = inWl ? '❤️' : '🤍';
+    btn.title        = inWl ? 'Retirer de la wishlist' : 'Ajouter à la wishlist';
+    btn.classList.toggle('in-list', inWl);
+    if (inWl) { btn.classList.remove('in-list'); void btn.offsetWidth; btn.classList.add('in-list'); }
+  }
+}
+
+function updateWishlistUI() {
+  const count = wishlist.length;
+  $wlCount.textContent = count;
+  $wlCount.classList.remove('bump');
+  void $wlCount.offsetWidth;
+  $wlCount.classList.add('bump');
+
+  /* totals */
+  let totalVp = 0, totalEur = 0;
+  const items = wishlist.map(uuid => allSkins.find(s => s.uuid === uuid)).filter(Boolean);
+  items.forEach(s => { totalVp += s.tier.vp; totalEur += s.tier.eur; });
+  $wlTotalVp.textContent  = totalVp.toLocaleString('fr-FR') + ' VP';
+  $wlTotalEur.textContent = totalEur.toFixed(2).replace('.',',') + ' €';
+  $wlTotalNb.textContent  = count;
+
+  /* list */
+  if (!count) {
+    $wlList.innerHTML = '';
+    $wlEmpty.style.display = 'flex';
+    return;
+  }
+  $wlEmpty.style.display = 'none';
+  $wlList.innerHTML = items.map(s => `
+    <div class="wl-item">
+      ${s.img
+        ? `<img class="wl-item-img" src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" onerror="this.style.display='none'" />`
+        : `<div class="wl-item-img" style="background:rgba(0,0,0,.3)"></div>`}
+      <div class="wl-item-info">
+        <div class="wl-item-name">${esc(s.name)}</div>
+        <div class="wl-item-sub">${esc(s.weapon)} · <span style="color:${esc(s.tier.color)}">${esc(s.tier.label)}</span></div>
+      </div>
+      <div class="wl-item-price">${s.tier.vp} VP</div>
+      <button class="wl-remove" data-uuid="${esc(s.uuid)}" title="Retirer">✕</button>
+    </div>`).join('');
+}
+
+/* ── EVENT LISTENERS ─────────────────────────────────────────── */
+
+/* Grid delegation */
+$grid.addEventListener('click', e => {
+  const btn = e.target.closest('.wl-btn');
+  if (btn) toggleWishlist(btn.dataset.uuid);
+});
+
+/* Rarity filters */
+document.getElementById('rarity-filters').addEventListener('change', e => {
+  if (e.target.type === 'checkbox') {
+    e.target.checked ? fRarities.add(e.target.value) : fRarities.delete(e.target.value);
+    render();
+  }
+});
+
+/* Search */
+$search.addEventListener('input', e => {
+  fSearch = e.target.value.trim();
+  render();
+});
+
+/* Sort */
+$sort.addEventListener('change', e => {
+  fSort = e.target.value;
+  render();
+});
+
+/* Reset */
+$resetBtn.addEventListener('click', () => {
+  fRarities.clear(); fWeapons.clear(); fCollections.clear();
+  fSearch = ''; fSort = 'name-asc';
+  $search.value = '';
+  $sort.value = 'name-asc';
+  document.querySelectorAll('#rarity-filters input, #weapon-filters input, #collection-filters input')
+    .forEach(el => el.checked = false);
+  render();
+});
+
+/* Wishlist panel */
+function openWL() {
+  $wlPanel.classList.add('open');
+  $wlOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeWL() {
+  $wlPanel.classList.remove('open');
+  $wlOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+$wlBtn.addEventListener('click', openWL);
+$wlClose.addEventListener('click', closeWL);
+$wlOverlay.addEventListener('click', closeWL);
+
+/* Wishlist remove */
+$wlList.addEventListener('click', e => {
+  const btn = e.target.closest('.wl-remove');
+  if (btn) {
+    toggleWishlist(btn.dataset.uuid);
+    render(); /* update heart icons in grid */
+  }
+});
+
+/* Wishlist clear */
+$wlClear.addEventListener('click', () => {
+  wishlist = [];
+  saveWishlist();
+  updateWishlistUI();
+  render();
+});
+
+/* Keyboard close */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeWL();
+});
+
+/* ── BOOT ────────────────────────────────────────────────────── */
+init();
+</script>
+</body>
+</html>
