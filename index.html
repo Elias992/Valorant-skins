@@ -748,6 +748,194 @@
       #search-wrap { max-width: none; }
       .header-select-wrap { display: none; }
     }
+
+    /* ─── LOAD MORE ─────────────────────────────────────────── */
+    .load-more-sentinel {
+      grid-column: 1 / -1;
+      display: flex; justify-content: center;
+      padding: 24px 0 12px;
+    }
+    .load-more-btn {
+      background: rgba(123,158,185,.08);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .88rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase;
+      padding: 10px 28px; border-radius: 4px;
+      cursor: pointer; transition: background .2s, color .2s, border-color .2s;
+    }
+    .load-more-btn:hover {
+      background: rgba(255,70,85,.1);
+      border-color: rgba(255,70,85,.3);
+      color: var(--white);
+    }
+
+    /* ─── SKIN PREVIEW MODAL ─────────────────────────────────── */
+    #skin-modal {
+      position: fixed; inset: 0; z-index: 1100;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .25s;
+      pointer-events: none;
+    }
+    #skin-modal.open { opacity: 1; pointer-events: all; }
+
+    .modal-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.75);
+      backdrop-filter: blur(8px);
+    }
+
+    .modal-box {
+      position: relative; z-index: 1;
+      background: #111D27;
+      border: 1px solid rgba(123,158,185,.18);
+      border-radius: 10px;
+      width: min(920px, 96vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 80px rgba(0,0,0,.7);
+      transform: translateY(18px);
+      transition: transform .28s cubic-bezier(.22,.68,0,1.2);
+    }
+    #skin-modal.open .modal-box { transform: translateY(0); }
+
+    .modal-close {
+      position: absolute; top: 14px; right: 16px; z-index: 2;
+      background: rgba(123,158,185,.1);
+      border: 1px solid rgba(123,158,185,.2);
+      color: var(--muted);
+      width: 32px; height: 32px; border-radius: 50%;
+      font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s;
+    }
+    .modal-close:hover { background: rgba(255,70,85,.15); color: var(--red); }
+
+    .modal-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 660px) {
+      .modal-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Left panel */
+    .modal-left {
+      padding: 28px 24px 24px;
+      display: flex; flex-direction: column; gap: 16px;
+      border-right: 1px solid rgba(123,158,185,.1);
+    }
+    .modal-media-wrap {
+      width: 100%; aspect-ratio: 16/9;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(15,25,35,.6);
+      border-radius: 8px; overflow: hidden;
+    }
+    .modal-img {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain; display: block;
+    }
+    .modal-video {
+      width: 100%; height: 100%;
+      object-fit: contain; display: block;
+    }
+
+    /* Swatches */
+    .modal-swatches {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .swatch-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid transparent;
+      background-size: cover; background-position: center;
+      cursor: pointer; transition: border-color .15s, transform .15s;
+      background-color: rgba(123,158,185,.15);
+    }
+    .swatch-btn:hover { transform: scale(1.1); }
+    .swatch-btn.active { border-color: #FF4655; box-shadow: 0 0 0 2px rgba(255,70,85,.3); }
+
+    .modal-manual-note {
+      font-size: .65rem; color: #ffc107; opacity: .8;
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+
+    /* Right panel */
+    .modal-right {
+      padding: 28px 24px 24px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .modal-skin-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.55rem; font-weight: 700;
+      color: var(--white); line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .modal-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+    .modal-price {
+      margin-top: 10px;
+      display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+    }
+    .modal-price .price-vp {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.3rem; font-weight: 700; color: #fbbf24;
+    }
+    .modal-price .price-local {
+      font-size: .85rem; color: var(--muted);
+    }
+
+    /* Levels */
+    .modal-section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--muted); margin-bottom: 10px;
+    }
+    .level-list {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .level-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 5px;
+      background: rgba(123,158,185,.05);
+      border: 1px solid rgba(123,158,185,.1);
+      font-size: .8rem; color: var(--muted);
+      transition: background .15s, border-color .15s;
+    }
+    .level-item.has-video {
+      cursor: pointer;
+      color: var(--white);
+      border-color: rgba(123,158,185,.2);
+    }
+    .level-item.has-video:hover {
+      background: rgba(255,70,85,.08);
+      border-color: rgba(255,70,85,.25);
+    }
+    .level-item.active {
+      background: rgba(255,70,85,.1);
+      border-color: rgba(255,70,85,.35);
+      color: var(--white);
+    }
+    .level-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: .72rem;
+      letter-spacing: .05em; color: var(--muted);
+      min-width: 36px;
+    }
+    .level-label { flex: 1; }
+    .level-play {
+      font-size: .7rem; color: var(--red);
+      background: rgba(255,70,85,.12);
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Cards clickable cursor */
+    .card { cursor: pointer; }
+    .wl-btn { position: relative; z-index: 2; }
   </style>
 </head>
 <body>
@@ -955,6 +1143,32 @@ const MELEE_PRICE = {
 };
 const TIER_ORDER = ['select','deluxe','premium','exclusive','ultra'];
 
+/* ── MANUAL SKINS (bundles récents à merger avec l'API) ─────── */
+const MANUAL_SKINS = [
+  { uuid:'rogue-vandal',   name:'Rogue Vandal',      weapon:'Vandal',   collection:'Rogue', rarity:'exclusive', vp:2175 },
+  { uuid:'rogue-operator', name:'Rogue Operator',     weapon:'Operator', collection:'Rogue', rarity:'exclusive', vp:2175 },
+  { uuid:'rogue-bucky',    name:'Rogue Bucky',        weapon:'Bucky',    collection:'Rogue', rarity:'exclusive', vp:2175 },
+  { uuid:'rogue-bandit',   name:'Rogue Bandit',       weapon:'Bandit',   collection:'Rogue', rarity:'exclusive', vp:2175 },
+  { uuid:'rogue-melee',    name:'Rogue Push Dagger',  weapon:'Melee',    collection:'Rogue', rarity:'exclusive', vp:4350 },
+];
+
+/* ── LEVEL ITEM → LIBELLÉ FRANÇAIS ──────────────────────────── */
+const LEVEL_LABELS = {
+  SoundEffects:     '🔊 Effets sonores',
+  EquipAnimation:   "🎬 Animation d'équipement",
+  Finisher:         '💥 Finisher',
+  KillBanner:       '🏆 Bannière de kill',
+  KillCounter:      '🔢 Compteur de kills',
+  KillEffect:       '✨ Effet de kill',
+  VFX:              '🌟 Effets visuels',
+  Transformation:   '🔄 Transformation',
+};
+function levelLabel(raw) {
+  if (!raw) return null;
+  const key = raw.replace(/^EEquippableSkinLevelItem::/, '');
+  return LEVEL_LABELS[key] || key;
+}
+
 /* ── REGIONS ────────────────────────────────────────────────── */
 const REGIONS = {
   FR: { name:'🇫🇷 France',       currency:'EUR', per1000:9.99  },
@@ -1076,21 +1290,33 @@ async function fetchRates() {
   }
 }
 
+/* ── FULL SKIN STORE (uuid → raw API skin) pour la modale ────── */
+const skinStore = {};
+
 /* ── FETCH SKINS + THEMES ───────────────────────────────────── */
+let _abortCtrl = null;
+
 async function init() {
   try {
-    /* All 3 in parallel */
-    const [weaponsRes, themesRes] = await Promise.all([
-      fetch('https://valorant-api.com/v1/weapons'),
-      fetch('https://valorant-api.com/v1/themes'),
-    ]);
-    /* Rates can fail silently — we have fallback */
-    await fetchRates();
+    /* ── SessionStorage cache ─────────────────────────────── */
+    const CACHE_KEY = 'valo-skins-cache';
+    let weaponsData, themesData;
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    if (cached) {
+      ({ weaponsData, themesData } = JSON.parse(cached));
+    } else {
+      _abortCtrl = new AbortController();
+      const sig  = _abortCtrl.signal;
+      const [wRes, tRes] = await Promise.all([
+        fetch('https://valorant-api.com/v1/weapons', { signal: sig }),
+        fetch('https://valorant-api.com/v1/themes',  { signal: sig }),
+      ]);
+      [weaponsData, themesData] = await Promise.all([ wRes.json(), tRes.json() ]);
+      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ weaponsData, themesData })); } catch {}
+    }
 
-    const [weaponsData, themesData] = await Promise.all([
-      weaponsRes.json(),
-      themesRes.json(),
-    ]);
+    /* Rates can fail silently */
+    await fetchRates();
 
     /* Build theme name map */
     const themeMap = {};
@@ -1098,6 +1324,8 @@ async function init() {
 
     /* Flatten skins */
     const skins = [];
+    const apiUuids = new Set();
+
     (weaponsData.data || []).forEach(weapon => {
       (weapon.skins || []).forEach(skin => {
         if (!skin.contentTierUuid) return;
@@ -1108,11 +1336,8 @@ async function init() {
         const weaponName = weapon.displayName;
         const isMelee    = weaponName === 'Melee';
 
-        /* Prix selon type : melee ou arme classique */
         const priceTable = isMelee ? MELEE_PRICE : WEAPON_PRICE;
         const priceData  = priceTable[baseTier.key] || { vp: 0, eur: 0 };
-
-        /* Tier enrichi avec le VP correct pour ce type d'arme */
         const tier = { ...baseTier, vp: priceData.vp, isMelee };
 
         const img  = skin.displayIcon
@@ -1120,15 +1345,22 @@ async function init() {
           || null;
         const col  = skin.themeUuid ? (themeMap[skin.themeUuid] || 'Unknown') : 'Unknown';
 
-        skins.push({
-          uuid:       skin.uuid,
-          name:       skin.displayName,
-          weapon:     weaponName,
-          collection: col,
-          tier,
-          img,
-        });
+        /* Store full skin data for modal */
+        skinStore[skin.uuid] = skin;
+        apiUuids.add(skin.uuid);
+
+        skins.push({ uuid: skin.uuid, name: skin.displayName, weapon: weaponName, collection: col, tier, img });
       });
+    });
+
+    /* ── Merge MANUAL_SKINS (only if not already in API) ──── */
+    MANUAL_SKINS.forEach(m => {
+      if (apiUuids.has(m.uuid)) return;
+      const isMelee = m.weapon === 'Melee';
+      const tierEntry = Object.values(TIERS).find(t => t.key === m.rarity);
+      if (!tierEntry) return;
+      const tier = { ...tierEntry, vp: m.vp, isMelee };
+      skins.push({ uuid: m.uuid, name: m.name, weapon: m.weapon, collection: m.collection, tier, img: null, manual: true });
     });
 
     allSkins = skins;
@@ -1137,11 +1369,14 @@ async function init() {
     render();
     updateWishlistUI();
   } catch (e) {
+    if (e.name === 'AbortError') return;
     console.error(e);
     hideLoader();
     $errBox.style.display = 'block';
   }
 }
+
+window.addEventListener('beforeunload', () => { if (_abortCtrl) _abortCtrl.abort(); });
 
 function hideLoader() {
   $loader.classList.add('hidden');
@@ -1236,42 +1471,76 @@ function priceHTML(s) {
 }
 
 /* ── RENDER GRID ─────────────────────────────────────────────── */
+const PAGE_SIZE = 60;
+let   _renderList = [];
+let   _renderOffset = 0;
+
+function cardHTML(s, i) {
+  const inWl  = wishlist.includes(s.uuid);
+  const delay = Math.min(i * 22, 260);
+  const img   = s.img
+    ? `<img src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" /><svg class="img-fallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`
+    : `<svg class="img-fallback" style="display:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`;
+
+  return `
+  <div class="card" data-r="${esc(s.tier.key)}" data-uuid="${esc(s.uuid)}" style="animation-delay:${delay}ms" role="button" tabindex="0" aria-label="Voir ${esc(s.name)}">
+    <div class="card-bar" style="background:${esc(s.tier.color)}"></div>
+    <div class="card-img">${img}</div>
+    <div class="card-body">
+      <div class="card-name" title="${esc(s.name)}">${esc(s.name)}</div>
+      <div class="card-badges">
+        <span class="badge" style="background:${esc(s.tier.color)}22;color:${esc(s.tier.color)};border:1px solid ${esc(s.tier.color)}44">${esc(s.tier.label)}</span>
+        ${s.tier.isMelee
+          ? `<span class="badge badge-melee">🔪 MELEE</span>`
+          : `<span class="badge" style="background:rgba(123,158,185,.1);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(s.weapon)}</span>`
+        }
+      </div>
+      <div class="card-footer">
+        <div class="card-price">${priceHTML(s)}</div>
+        <button class="wl-btn ${inWl ? 'in-list' : ''}" data-uuid="${esc(s.uuid)}"
+          title="${inWl ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}" aria-label="Wishlist">
+          ${inWl ? '❤️' : '🤍'}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function appendCards(list, from, count) {
+  const frag = document.createDocumentFragment();
+  const tmp  = document.createElement('div');
+  const slice = list.slice(from, from + count);
+  tmp.innerHTML = slice.map((s, i) => cardHTML(s, from + i)).join('');
+  while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+  /* remove old load-more sentinel if present */
+  const old = $grid.querySelector('.load-more-sentinel');
+  if (old) old.remove();
+  $grid.appendChild(frag);
+  /* add sentinel if more cards remain */
+  if (from + count < list.length) {
+    const sentinel = document.createElement('div');
+    sentinel.className = 'load-more-sentinel';
+    sentinel.innerHTML = `<button class="load-more-btn" id="load-more-btn">Charger ${Math.min(PAGE_SIZE, list.length - from - count)} skins de plus</button>`;
+    $grid.appendChild(sentinel);
+    document.getElementById('load-more-btn').addEventListener('click', () => {
+      _renderOffset += count;
+      appendCards(_renderList, _renderOffset, PAGE_SIZE);
+    });
+  }
+}
+
 function render() {
   const list = getFiltered();
+  _renderList   = list;
+  _renderOffset = 0;
+
   $errBox.style.display = 'none';
   $empty.style.display  = list.length ? 'none' : 'flex';
   $rCount.innerHTML = `<strong>${list.length}</strong> skins affichés sur <strong>${allSkins.length}</strong>`;
 
-  $grid.innerHTML = list.map((s, i) => {
-    const inWl  = wishlist.includes(s.uuid);
-    const delay = Math.min(i * 28, 300);
-    const img   = s.img
-      ? `<img src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" /><svg class="img-fallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`
-      : `<svg class="img-fallback" style="display:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`;
-
-    return `
-    <div class="card" data-r="${esc(s.tier.key)}" data-uuid="${esc(s.uuid)}" style="animation-delay:${delay}ms">
-      <div class="card-bar" style="background:${esc(s.tier.color)}"></div>
-      <div class="card-img">${img}</div>
-      <div class="card-body">
-        <div class="card-name" title="${esc(s.name)}">${esc(s.name)}</div>
-        <div class="card-badges">
-          <span class="badge" style="background:${esc(s.tier.color)}22;color:${esc(s.tier.color)};border:1px solid ${esc(s.tier.color)}44">${esc(s.tier.label)}</span>
-          ${s.tier.isMelee
-            ? `<span class="badge badge-melee">🔪 MELEE</span>`
-            : `<span class="badge" style="background:rgba(123,158,185,.1);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(s.weapon)}</span>`
-          }
-        </div>
-        <div class="card-footer">
-          <div class="card-price">${priceHTML(s)}</div>
-          <button class="wl-btn ${inWl ? 'in-list' : ''}" data-uuid="${esc(s.uuid)}"
-            title="${inWl ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}" aria-label="Wishlist">
-            ${inWl ? '❤️' : '🤍'}
-          </button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  $grid.innerHTML = '';
+  if (!list.length) return;
+  appendCards(list, 0, PAGE_SIZE);
 }
 
 /* ── WISHLIST LOGIC ──────────────────────────────────────────── */
@@ -1352,7 +1621,9 @@ function updateWishlistUI() {
 /* Grid delegation */
 $grid.addEventListener('click', e => {
   const btn = e.target.closest('.wl-btn');
-  if (btn) toggleWishlist(btn.dataset.uuid);
+  if (btn) { toggleWishlist(btn.dataset.uuid); return; }
+  const card = e.target.closest('.card[data-uuid]');
+  if (card) openModal(card.dataset.uuid);
 });
 
 /* Rarity filters */
@@ -1362,8 +1633,12 @@ document.getElementById('rarity-filters').addEventListener('change', e => {
   render();
 });
 
-/* Search */
-$search.addEventListener('input', e => { fSearch = e.target.value.trim(); render(); });
+/* Search — debounce 280ms */
+let _searchTimer = null;
+$search.addEventListener('input', e => {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => { fSearch = e.target.value.trim(); render(); }, 280);
+});
 
 /* Sort */
 $sort.addEventListener('change', e => { fSort = e.target.value; render(); });
@@ -1421,6 +1696,151 @@ $wlClear.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeWL(); });
+
+/* ── SKIN PREVIEW MODAL ─────────────────────────────────────── */
+function openModal(uuid) {
+  const skin = allSkins.find(s => s.uuid === uuid);
+  if (!skin) return;
+  const rawSkin = skinStore[uuid] || null;
+  const chromas = rawSkin?.chromas || [];
+  const levels  = rawSkin?.levels  || [];
+
+  /* Destroy any existing modal */
+  const existing = document.getElementById('skin-modal');
+  if (existing) existing.remove();
+
+  /* Active chroma index */
+  let activeChroma = 0;
+
+  /* Build chroma swatches */
+  const swatchesHTML = chromas.length > 1 ? chromas.map((c, i) => {
+    const swatch = c.swatch || c.displayIcon || '';
+    return `<button class="swatch-btn${i===0?' active':''}" data-ci="${i}" title="${esc(c.displayName || 'Variante ' + (i+1))}" style="background-image:url('${esc(swatch)}')"></button>`;
+  }).join('') : '';
+
+  /* Build levels list */
+  const levelsHTML = levels.length ? `
+    <div class="modal-levels">
+      <h3 class="modal-section-title">Niveaux d'amélioration</h3>
+      <ul class="level-list">
+        ${levels.map((lv, i) => {
+          const lab = levelLabel(lv.levelItem);
+          const hasVid = !!lv.streamedVideo;
+          return `<li class="level-item${hasVid?' has-video':''}" data-li="${i}" title="${hasVid ? 'Cliquer pour voir la vidéo' : ''}">
+            <span class="level-num">Niv. ${i+1}</span>
+            ${lab ? `<span class="level-label">${lab}</span>` : ''}
+            ${hasVid ? '<span class="level-play">▶</span>' : ''}
+          </li>`;
+        }).join('')}
+      </ul>
+    </div>` : '';
+
+  /* First image/video */
+  const firstChroma = chromas[0] || {};
+  const firstMedia  = firstChroma.streamedVideo
+    ? `<video class="modal-video" autoplay loop muted playsinline preload="none" src="${esc(firstChroma.streamedVideo)}"></video>`
+    : `<img class="modal-img" src="${esc(firstChroma.fullRender || firstChroma.displayIcon || skin.img || '')}" alt="${esc(skin.name)}" />`;
+
+  const modal = document.createElement('div');
+  modal.id = 'skin-modal';
+  modal.innerHTML = `
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-label="${esc(skin.name)}">
+      <button class="modal-close" id="modal-close" aria-label="Fermer">✕</button>
+
+      <div class="modal-layout">
+        <!-- LEFT: media + swatches -->
+        <div class="modal-left">
+          <div class="modal-media-wrap" id="modal-media">
+            ${firstMedia}
+          </div>
+          ${swatchesHTML ? `<div class="modal-swatches" id="modal-swatches">${swatchesHTML}</div>` : ''}
+          ${skin.manual ? '<div class="modal-manual-note">⚠️ Données partielles — skin récent non encore indexé par l'API</div>' : ''}
+        </div>
+
+        <!-- RIGHT: info + levels -->
+        <div class="modal-right">
+          <div class="modal-header">
+            <h2 class="modal-skin-name">${esc(skin.name)}</h2>
+            <div class="modal-meta">
+              <span class="badge" style="background:${esc(skin.tier.color)}22;color:${esc(skin.tier.color)};border:1px solid ${esc(skin.tier.color)}44">${esc(skin.tier.label)}</span>
+              ${skin.tier.isMelee
+                ? `<span class="badge badge-melee">🔪 MELEE</span>`
+                : `<span class="badge" style="background:rgba(123,158,185,.1);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(skin.weapon)}</span>`}
+              <span class="badge" style="background:rgba(123,158,185,.08);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(skin.collection)}</span>
+            </div>
+            <div class="modal-price">
+              <span class="price-vp">${skin.tier.vp.toLocaleString('fr-FR')} VP</span>
+              <span class="price-local">≈ ${formatPrice(vpToDisplay(skin.tier.vp), selectedCurrency)}</span>
+              ${skin.tier.isMelee ? '<span class="melee-price-note">Prix variable — voir le shop</span>' : ''}
+            </div>
+          </div>
+          ${levelsHTML}
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  requestAnimationFrame(() => modal.classList.add('open'));
+  document.body.style.overflow = 'hidden';
+
+  /* Auto-play first video if exists */
+  const vid = modal.querySelector('.modal-video');
+  if (vid) { vid.src = firstChroma.streamedVideo; vid.play().catch(()=>{}); }
+
+  /* Close handlers */
+  function closeModal() {
+    modal.classList.remove('open');
+    /* Pause all videos + clear src */
+    modal.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; });
+    setTimeout(() => { modal.remove(); document.body.style.overflow = ''; }, 280);
+  }
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-backdrop').addEventListener('click', closeModal);
+  modal.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  /* Swatch click → swap media */
+  const $swatches = document.getElementById('modal-swatches');
+  if ($swatches) {
+    $swatches.addEventListener('click', e => {
+      const btn = e.target.closest('.swatch-btn');
+      if (!btn) return;
+      const ci = parseInt(btn.dataset.ci, 10);
+      activeChroma = ci;
+      $swatches.querySelectorAll('.swatch-btn').forEach((b,i) => b.classList.toggle('active', i===ci));
+
+      const chroma = chromas[ci];
+      const $media = document.getElementById('modal-media');
+      if (chroma.streamedVideo) {
+        $media.innerHTML = `<video class="modal-video" autoplay loop muted playsinline src="${esc(chroma.streamedVideo)}"></video>`;
+        $media.querySelector('video').play().catch(()=>{});
+      } else {
+        $media.innerHTML = `<img class="modal-img" src="${esc(chroma.fullRender || chroma.displayIcon || '')}" alt="${esc(skin.name)}" />`;
+      }
+    });
+  }
+
+  /* Level click → swap to level video */
+  modal.querySelector('.level-list')?.addEventListener('click', e => {
+    const li = e.target.closest('.level-item.has-video');
+    if (!li) return;
+    modal.querySelectorAll('.level-item').forEach(el => el.classList.remove('active'));
+    li.classList.add('active');
+    const lv  = levels[parseInt(li.dataset.li, 10)];
+    const $media = document.getElementById('modal-media');
+    $media.innerHTML = `<video class="modal-video" autoplay loop muted playsinline src="${esc(lv.streamedVideo)}"></video>`;
+    $media.querySelector('video').play().catch(()=>{});
+  });
+}
+
+/* Escape closes modal */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeWL();
+    const m = document.getElementById('skin-modal');
+    if (m) m.querySelector('#modal-close')?.click();
+  }
+});
 
 /* ── BOOT ────────────────────────────────────────────────────── */
 init();
