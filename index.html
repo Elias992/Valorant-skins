@@ -591,6 +591,19 @@
     }
 
     /* ─── ERROR / EMPTY ─────────────────────────────────────── */
+    #retry-btn {
+      margin-top: 14px;
+      background: rgba(255,70,85,.12);
+      border: 1px solid rgba(255,70,85,.35);
+      color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .9rem; font-weight: 700;
+      letter-spacing: .08em; text-transform: uppercase;
+      padding: 9px 24px; border-radius: 4px;
+      cursor: pointer; transition: background .2s, border-color .2s;
+    }
+    #retry-btn:hover { background: rgba(255,70,85,.25); border-color: rgba(255,70,85,.6); }
+
     #error-box { display: none; padding: 40px; text-align: center; color: var(--muted); }
     #error-box .err-icon { font-size: 3rem; margin-bottom: 14px; }
     #error-box h3 { font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; color: var(--red); margin-bottom: 8px; }
@@ -1098,8 +1111,9 @@
     </div>
     <div id="error-box">
       <div class="err-icon">⚠️</div>
-      <h3>Erreur de chargement</h3>
-      <p>Impossible de contacter l'API Valorant.<br/>Vérifiez votre connexion et rechargez la page.</p>
+      <h3 id="err-title">Impossible de charger les skins</h3>
+      <p id="err-msg">Vérifie ta connexion ou réessaie.</p>
+      <button id="retry-btn">🔄 Réessayer</button>
     </div>
     <div id="empty-state">
       <div class="empty-icon">🔍</div>
@@ -1111,8 +1125,16 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   VALOSKINS — vanilla JS  v2 (région + devise + Exclusive fix)
+   VALOSKINS — vanilla JS  v3 (debug + fallback immédiat)
    ═══════════════════════════════════════════════════════════════ */
+
+/* ── TEST IMMÉDIAT : si cette ligne s'exécute, le JS est chargé ── */
+(function() {
+  const g = document.getElementById('grid');
+  if (g) g.innerHTML = '<p style="color:rgba(255,255,255,.4);padding:20px;font-family:monospace;font-size:.75rem">⚙️ JS chargé — initialisation…</p>';
+})();
+
+try {
 
 /* ── RARITY MAP (base — le VP sera calculé dynamiquement selon arme/melee) ── */
 const TIERS = {
@@ -1210,32 +1232,48 @@ let fCollections = new Set();
 let fSort        = 'name-asc';
 let fSearch      = '';
 
-/* ── DOM ────────────────────────────────────────────────────── */
-const $loader       = document.getElementById('loader');
-const $grid         = document.getElementById('grid');
-const $search       = document.getElementById('search');
-const $sort         = document.getElementById('sort-select');
-const $rCount       = document.getElementById('results-count');
-const $errBox       = document.getElementById('error-box');
-const $empty        = document.getElementById('empty-state');
-const $weaponF      = document.getElementById('weapon-filters');
-const $collF        = document.getElementById('collection-filters');
-const $wlBtn        = document.getElementById('wishlist-btn');
-const $wlCount      = document.getElementById('wl-count');
-const $wlPanel      = document.getElementById('wl-panel');
-const $wlOverlay    = document.getElementById('wl-overlay');
-const $wlClose      = document.getElementById('wl-close');
-const $wlList       = document.getElementById('wl-list');
-const $wlEmpty      = document.getElementById('wl-empty');
-const $wlTotalVp    = document.getElementById('wl-total-vp');
-const $wlTotalLocal = document.getElementById('wl-total-local');
-const $wlTotalNb    = document.getElementById('wl-total-nb');
-const $wlCurrLabel  = document.getElementById('wl-currency-label');
-const $wlClear      = document.getElementById('wl-clear');
-const $resetBtn     = document.getElementById('reset-btn');
-const $regionSel    = document.getElementById('region-select');
-const $currSel      = document.getElementById('currency-select');
-const $ratesStatus  = document.getElementById('rates-status');
+/* ── DOM (résolution paresseuse — évite les nulls au boot) ──── */
+/* Toutes les refs sont récupérées via une fonction pour éviter
+   qu'un seul getElementById null ne plante tout le script       */
+function $id(id) {
+  const el = document.getElementById(id);
+  if (!el) console.warn('[VALOSKINS] ⚠️ getElementById("' + id + '") → null');
+  return el;
+}
+/* Raccourcis — assignés une seule fois après DOMContentLoaded  */
+let $loader, $grid, $search, $sort, $rCount, $errBox, $empty;
+let $weaponF, $collF, $wlBtn, $wlCount, $wlPanel, $wlOverlay;
+let $wlClose, $wlList, $wlEmpty, $wlTotalVp, $wlTotalLocal;
+let $wlTotalNb, $wlCurrLabel, $wlClear, $resetBtn, $regionSel, $currSel, $ratesStatus;
+
+function initDOMRefs() {
+  $loader      = $id('loader');
+  $grid        = $id('grid');
+  $search      = $id('search');
+  $sort        = $id('sort-select');
+  $rCount      = $id('results-count');
+  $errBox      = $id('error-box');
+  $empty       = $id('empty-state');
+  $weaponF     = $id('weapon-filters');
+  $collF       = $id('collection-filters');
+  $wlBtn       = $id('wishlist-btn');
+  $wlCount     = $id('wl-count');
+  $wlPanel     = $id('wl-panel');
+  $wlOverlay   = $id('wl-overlay');
+  $wlClose     = $id('wl-close');
+  $wlList      = $id('wl-list');
+  $wlEmpty     = $id('wl-empty');
+  $wlTotalVp   = $id('wl-total-vp');
+  $wlTotalLocal= $id('wl-total-local');
+  $wlTotalNb   = $id('wl-total-nb');
+  $wlCurrLabel = $id('wl-currency-label');
+  $wlClear     = $id('wl-clear');
+  $resetBtn    = $id('reset-btn');
+  $regionSel   = $id('region-select');
+  $currSel     = $id('currency-select');
+  $ratesStatus = $id('rates-status');
+  console.log('[VALOSKINS] 🔗 DOM refs initialisées');
+}
 
 /* ── ESCAPE HELPER ──────────────────────────────────────────── */
 function esc(str) {
@@ -1293,34 +1331,151 @@ async function fetchRates() {
 /* ── FULL SKIN STORE (uuid → raw API skin) pour la modale ────── */
 const skinStore = {};
 
-/* ── FETCH SKINS + THEMES ───────────────────────────────────── */
-let _abortCtrl = null;
+/* ── FALLBACK SKINS (utilisés si l'API est inaccessible) ───────
+   ~25 skins hardcodés couvrant tous les tiers et toutes les armes */
+const FALLBACK_SKIN_DATA = [
+  { uuid:'fb-001', name:'Reaver Vandal',        weapon:'Vandal',   collection:'Reaver',       rarity:'exclusive', img:'https://media.valorant-api.com/weaponskins/b1e08b2f-11d2-0d37-1b7a-a4a582bc1614/displayicon.png' },
+  { uuid:'fb-002', name:'Reaver Operator',       weapon:'Operator', collection:'Reaver',       rarity:'exclusive', img:null },
+  { uuid:'fb-003', name:'Reaver Sheriff',        weapon:'Sheriff',  collection:'Reaver',       rarity:'exclusive', img:null },
+  { uuid:'fb-004', name:'Reaver Karambit',       weapon:'Melee',    collection:'Reaver',       rarity:'exclusive', vp:4350, img:null },
+  { uuid:'fb-005', name:'Prime Vandal',          weapon:'Vandal',   collection:'Prime',        rarity:'ultra',     img:null },
+  { uuid:'fb-006', name:'Prime Classic',         weapon:'Classic',  collection:'Prime',        rarity:'ultra',     img:null },
+  { uuid:'fb-007', name:'Prime Operator',        weapon:'Operator', collection:'Prime',        rarity:'ultra',     img:null },
+  { uuid:'fb-008', name:'Glitchpop Vandal',      weapon:'Vandal',   collection:'Glitchpop',    rarity:'exclusive', img:null },
+  { uuid:'fb-009', name:'Glitchpop Phantom',     weapon:'Phantom',  collection:'Glitchpop',    rarity:'exclusive', img:null },
+  { uuid:'fb-010', name:'Glitchpop Frenzy',      weapon:'Frenzy',   collection:'Glitchpop',    rarity:'exclusive', img:null },
+  { uuid:'fb-011', name:'Ion Phantom',           weapon:'Phantom',  collection:'Ion',          rarity:'premium',   img:null },
+  { uuid:'fb-012', name:'Ion Sheriff',           weapon:'Sheriff',  collection:'Ion',          rarity:'premium',   img:null },
+  { uuid:'fb-013', name:'Ion Spectre',           weapon:'Spectre',  collection:'Ion',          rarity:'premium',   img:null },
+  { uuid:'fb-014', name:'Sovereign Vandal',      weapon:'Vandal',   collection:'Sovereign',    rarity:'premium',   img:null },
+  { uuid:'fb-015', name:'Sovereign Marshal',     weapon:'Marshal',  collection:'Sovereign',    rarity:'premium',   img:null },
+  { uuid:'fb-016', name:'Sakura Ghost',          weapon:'Ghost',    collection:'Sakura',       rarity:'deluxe',    img:null },
+  { uuid:'fb-017', name:'Sakura Spectre',        weapon:'Spectre',  collection:'Sakura',       rarity:'deluxe',    img:null },
+  { uuid:'fb-018', name:'Sakura Stinger',        weapon:'Stinger',  collection:'Sakura',       rarity:'deluxe',    img:null },
+  { uuid:'fb-019', name:'Immortalized Vandal',   weapon:'Vandal',   collection:'Immortalized', rarity:'select',    img:null },
+  { uuid:'fb-020', name:'Immortalized Phantom',  weapon:'Phantom',  collection:'Immortalized', rarity:'select',    img:null },
+  { uuid:'fb-021', name:'Immortalized Ares',     weapon:'Ares',     collection:'Immortalized', rarity:'select',    img:null },
+  { uuid:'fb-022', name:'Rogue Vandal',          weapon:'Vandal',   collection:'Rogue',        rarity:'exclusive', img:null },
+  { uuid:'fb-023', name:'Rogue Operator',        weapon:'Operator', collection:'Rogue',        rarity:'exclusive', img:null },
+  { uuid:'fb-024', name:'Rogue Push Dagger',     weapon:'Melee',    collection:'Rogue',        rarity:'exclusive', vp:4350, img:null },
+  { uuid:'fb-025', name:'Spectrum Vandal',       weapon:'Vandal',   collection:'Spectrum',     rarity:'ultra',     img:null },
+];
 
+function buildFromFallback() {
+  console.log('[VALOSKINS] 🔌 Chargement du fallback local (API inaccessible)');
+  const skins = [];
+  FALLBACK_SKIN_DATA.forEach(f => {
+    const tierEntry = Object.values(TIERS).find(t => t.key === f.rarity);
+    if (!tierEntry) return;
+    const isMelee    = f.weapon === 'Melee';
+    const priceTable = isMelee ? MELEE_PRICE : WEAPON_PRICE;
+    const priceData  = priceTable[f.rarity] || { vp: 0 };
+    const vp         = f.vp || priceData.vp;
+    const tier       = { ...tierEntry, vp, isMelee };
+    skins.push({ uuid: f.uuid, name: f.name, weapon: f.weapon, collection: f.collection, tier, img: f.img || null, fallback: true });
+  });
+  return skins;
+}
+
+/* ── TIMEOUT HELPER ─────────────────────────────────────────── */
+function fetchWithTimeout(url, opts = {}, ms = 10000) {
+  const ctrl    = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal })
+    .finally(() => clearTimeout(timeout));
+}
+
+/* ── SHOW ERROR ─────────────────────────────────────────────── */
+function showError(title, msg) {
+  hideLoader();
+  document.getElementById('err-title').textContent = title;
+  document.getElementById('err-msg').textContent   = msg;
+  $errBox.style.display = 'block';
+}
+
+/* ── FETCH SKINS + THEMES ───────────────────────────────────── */
 async function init() {
+  /* Hide previous error if retrying */
+  $errBox.style.display = 'none';
+
   try {
+    console.log('[VALOSKINS] 🚀 init() démarré');
+
     /* ── SessionStorage cache ─────────────────────────────── */
-    const CACHE_KEY = 'valo-skins-cache';
+    const CACHE_KEY = 'valo-skins-cache-v2';
     let weaponsData, themesData;
     const cached = sessionStorage.getItem(CACHE_KEY);
+
     if (cached) {
-      ({ weaponsData, themesData } = JSON.parse(cached));
-    } else {
-      _abortCtrl = new AbortController();
-      const sig  = _abortCtrl.signal;
-      const [wRes, tRes] = await Promise.all([
-        fetch('https://valorant-api.com/v1/weapons', { signal: sig }),
-        fetch('https://valorant-api.com/v1/themes',  { signal: sig }),
-      ]);
-      [weaponsData, themesData] = await Promise.all([ wRes.json(), tRes.json() ]);
-      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ weaponsData, themesData })); } catch {}
+      console.log('[VALOSKINS] 📦 Cache sessionStorage trouvé — pas de fetch API');
+      try {
+        ({ weaponsData, themesData } = JSON.parse(cached));
+        if (!weaponsData?.data || !themesData?.data) throw new Error('Cache corrompu');
+        console.log('[VALOSKINS] ✅ Cache parsé —', weaponsData.data.length, 'armes');
+      } catch (cacheErr) {
+        console.warn('[VALOSKINS] ⚠️ Cache invalide, supprimé:', cacheErr.message);
+        sessionStorage.removeItem(CACHE_KEY);
+        cached && (weaponsData = themesData = null);
+      }
+    }
+
+    if (!weaponsData || !themesData) {
+      console.log('[VALOSKINS] 🌐 Fetch API valorant-api.com (timeout 10s)…');
+      let wRes, tRes;
+      try {
+        [wRes, tRes] = await Promise.all([
+          fetchWithTimeout('https://valorant-api.com/v1/weapons', {}, 10000),
+          fetchWithTimeout('https://valorant-api.com/v1/themes',  {}, 10000),
+        ]);
+        console.log('[VALOSKINS] 📡 Réponses HTTP —', wRes.status, '/', tRes.status);
+        if (!wRes.ok) throw new Error('weapons HTTP ' + wRes.status);
+        if (!tRes.ok) throw new Error('themes HTTP '  + tRes.status);
+      } catch (fetchErr) {
+        const isTimeout = fetchErr.name === 'AbortError';
+        console.error('[VALOSKINS] ❌ Fetch échoué:', fetchErr.message, '— Basculement sur fallback');
+        /* ── FALLBACK : charger les données locales ─────── */
+        await fetchRates();
+        allSkins = buildFromFallback();
+        buildDynamicFilters();
+        hideLoader();
+        render();
+        updateWishlistUI();
+        /* Afficher un avertissement non-bloquant */
+        document.getElementById('err-title').textContent = isTimeout
+          ? '⏱ API timeout — données locales chargées'
+          : '📡 API inaccessible — données locales chargées';
+        document.getElementById('err-msg').textContent =
+          'Le catalogue complet est indisponible. ' +
+          (isTimeout ? "L'API n'a pas répondu en 10s." : "Vérifie ta connexion.") +
+          ' Clique sur Réessayer pour tenter une reconnexion.';
+        $errBox.style.display = 'block';
+        $errBox.style.position = 'relative';
+        $errBox.style.margin   = '0 0 16px';
+        return;
+      }
+
+      console.log('[VALOSKINS] 🔄 Parsing JSON…');
+      try {
+        [weaponsData, themesData] = await Promise.all([ wRes.json(), tRes.json() ]);
+        console.log('[VALOSKINS] ✅ JSON parsé —', (weaponsData.data||[]).length, 'armes,', (themesData.data||[]).length, 'thèmes');
+      } catch (jsonErr) {
+        console.error('[VALOSKINS] ❌ Erreur parsing JSON:', jsonErr.message);
+        showError('Réponse API invalide', "L'API a répondu mais les données sont illisibles. Réessaie dans quelques instants.");
+        return;
+      }
+
+      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ weaponsData, themesData })); }
+      catch { console.warn('[VALOSKINS] ⚠️ sessionStorage plein — cache non enregistré'); }
     }
 
     /* Rates can fail silently */
+    console.log('[VALOSKINS] 💱 Fetch taux de change…');
     await fetchRates();
 
     /* Build theme name map */
     const themeMap = {};
     (themesData.data || []).forEach(t => { themeMap[t.uuid] = t.displayName; });
+    console.log('[VALOSKINS] 🗺 themeMap construit —', Object.keys(themeMap).length, 'thèmes');
 
     /* Flatten skins */
     const skins = [];
@@ -1345,18 +1500,18 @@ async function init() {
           || null;
         const col  = skin.themeUuid ? (themeMap[skin.themeUuid] || 'Unknown') : 'Unknown';
 
-        /* Store full skin data for modal */
         skinStore[skin.uuid] = skin;
         apiUuids.add(skin.uuid);
-
         skins.push({ uuid: skin.uuid, name: skin.displayName, weapon: weaponName, collection: col, tier, img });
       });
     });
 
-    /* ── Merge MANUAL_SKINS (only if not already in API) ──── */
+    console.log('[VALOSKINS] 🎨', skins.length, "skins traités depuis l'API");
+
+    /* Merge MANUAL_SKINS */
     MANUAL_SKINS.forEach(m => {
       if (apiUuids.has(m.uuid)) return;
-      const isMelee = m.weapon === 'Melee';
+      const isMelee   = m.weapon === 'Melee';
       const tierEntry = Object.values(TIERS).find(t => t.key === m.rarity);
       if (!tierEntry) return;
       const tier = { ...tierEntry, vp: m.vp, isMelee };
@@ -1364,19 +1519,21 @@ async function init() {
     });
 
     allSkins = skins;
+    console.log('[VALOSKINS] ✅ allSkins prêt —', allSkins.length, 'skins totaux. Mise à jour rendu depuis API…');
+    /* Fallback déjà affiché — remplacer silencieusement par les données API */
+    $errBox.style.display = 'none';
     buildDynamicFilters();
-    hideLoader();
     render();
     updateWishlistUI();
+    console.log('[VALOSKINS] 🏁 init() terminé avec succès —', allSkins.length, 'skins API chargés');
+
   } catch (e) {
-    if (e.name === 'AbortError') return;
-    console.error(e);
-    hideLoader();
-    $errBox.style.display = 'block';
+    console.error('[VALOSKINS] ❌ Erreur inattendue dans init():', e);
+    showError('Erreur inattendue', e.message || 'Une erreur inconnue est survenue. Ouvre la console pour plus de détails.');
   }
 }
 
-window.addEventListener('beforeunload', () => { if (_abortCtrl) _abortCtrl.abort(); });
+window.addEventListener('beforeunload', () => {});
 
 function hideLoader() {
   $loader.classList.add('hidden');
@@ -1616,59 +1773,7 @@ function updateWishlistUI() {
   }).join('');
 }
 
-/* ── EVENT LISTENERS ─────────────────────────────────────────── */
-
-/* Grid delegation */
-$grid.addEventListener('click', e => {
-  const btn = e.target.closest('.wl-btn');
-  if (btn) { toggleWishlist(btn.dataset.uuid); return; }
-  const card = e.target.closest('.card[data-uuid]');
-  if (card) openModal(card.dataset.uuid);
-});
-
-/* Rarity filters */
-document.getElementById('rarity-filters').addEventListener('change', e => {
-  if (e.target.type !== 'checkbox') return;
-  e.target.checked ? fRarities.add(e.target.value) : fRarities.delete(e.target.value);
-  render();
-});
-
-/* Search — debounce 280ms */
-let _searchTimer = null;
-$search.addEventListener('input', e => {
-  clearTimeout(_searchTimer);
-  _searchTimer = setTimeout(() => { fSearch = e.target.value.trim(); render(); }, 280);
-});
-
-/* Sort */
-$sort.addEventListener('change', e => { fSort = e.target.value; render(); });
-
-/* Region */
-$regionSel.addEventListener('change', e => {
-  selectedRegion = e.target.value;
-  render();
-  updateWishlistUI();
-});
-
-/* Currency */
-$currSel.addEventListener('change', e => {
-  selectedCurrency = e.target.value;
-  render();
-  updateWishlistUI();
-});
-
-/* Reset */
-$resetBtn.addEventListener('click', () => {
-  fRarities.clear(); fWeapons.clear(); fCollections.clear();
-  fSearch = ''; fSort = 'name-asc';
-  $search.value = '';
-  $sort.value = 'name-asc';
-  document.querySelectorAll('#rarity-filters input, #weapon-filters input, #collection-filters input')
-    .forEach(el => el.checked = false);
-  render();
-});
-
-/* Wishlist panel */
+/* ── WISHLIST PANEL ─────────────────────────────────────────── */
 function openWL() {
   $wlPanel.classList.add('open');
   $wlOverlay.classList.add('open');
@@ -1679,21 +1784,96 @@ function closeWL() {
   $wlOverlay.classList.remove('open');
   document.body.style.overflow = '';
 }
-$wlBtn.addEventListener('click', openWL);
-$wlClose.addEventListener('click', closeWL);
-$wlOverlay.addEventListener('click', closeWL);
 
-$wlList.addEventListener('click', e => {
-  const btn = e.target.closest('.wl-remove');
-  if (btn) { toggleWishlist(btn.dataset.uuid); render(); }
-});
-
-$wlClear.addEventListener('click', () => {
-  wishlist = [];
-  saveWishlist();
-  updateWishlistUI();
+/* ── SHOW FALLBACK IMMEDIATELY ───────────────────────────────── */
+function showFallbackImmediately() {
+  console.log('[VALOSKINS] ⚡ Affichage immédiat du fallback local');
+  allSkins = buildFromFallback();
+  buildDynamicFilters();
+  hideLoader();
   render();
-});
+  updateWishlistUI();
+}
+
+/* ── EVENT LISTENERS (appelé par bindEvents() après DOMReady) ── */
+let _searchTimer = null;
+
+function bindEvents() {
+  console.log('[VALOSKINS] 🔗 bindEvents()');
+
+  /* Grid delegation */
+  $grid.addEventListener('click', e => {
+    const btn = e.target.closest('.wl-btn');
+    if (btn) { toggleWishlist(btn.dataset.uuid); return; }
+    const card = e.target.closest('.card[data-uuid]');
+    if (card) openModal(card.dataset.uuid);
+  });
+
+  /* Rarity filters */
+  $id('rarity-filters').addEventListener('change', e => {
+    if (e.target.type !== 'checkbox') return;
+    e.target.checked ? fRarities.add(e.target.value) : fRarities.delete(e.target.value);
+    render();
+  });
+
+  /* Search — debounce 280ms */
+  $search.addEventListener('input', e => {
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(() => { fSearch = e.target.value.trim(); render(); }, 280);
+  });
+
+  /* Sort */
+  $sort.addEventListener('change', e => { fSort = e.target.value; render(); });
+
+  /* Region */
+  $regionSel.addEventListener('change', e => {
+    selectedRegion = e.target.value;
+    render(); updateWishlistUI();
+  });
+
+  /* Currency */
+  $currSel.addEventListener('change', e => {
+    selectedCurrency = e.target.value;
+    render(); updateWishlistUI();
+  });
+
+  /* Reset */
+  $resetBtn.addEventListener('click', () => {
+    fRarities.clear(); fWeapons.clear(); fCollections.clear();
+    fSearch = ''; fSort = 'name-asc';
+    $search.value = ''; $sort.value = 'name-asc';
+    document.querySelectorAll('#rarity-filters input, #weapon-filters input, #collection-filters input')
+      .forEach(el => el.checked = false);
+    render();
+  });
+
+  /* Retry button */
+  $id('retry-btn').addEventListener('click', () => {
+    try { sessionStorage.removeItem('valo-skins-cache-v2'); } catch {}
+    $errBox.style.position = '';
+    $errBox.style.margin   = '';
+    $loader.style.display  = 'flex';
+    $loader.classList.remove('hidden');
+    init();
+  });
+
+  /* Wishlist panel */
+  $wlBtn.addEventListener('click', openWL);
+  $wlClose.addEventListener('click', closeWL);
+  $wlOverlay.addEventListener('click', closeWL);
+
+  $wlList.addEventListener('click', e => {
+    const btn = e.target.closest('.wl-remove');
+    if (btn) { toggleWishlist(btn.dataset.uuid); render(); }
+  });
+
+  $wlClear.addEventListener('click', () => {
+    wishlist = [];
+    saveWishlist();
+    updateWishlistUI();
+    render();
+  });
+}
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeWL(); });
 
@@ -1755,7 +1935,7 @@ function openModal(uuid) {
             ${firstMedia}
           </div>
           ${swatchesHTML ? `<div class="modal-swatches" id="modal-swatches">${swatchesHTML}</div>` : ''}
-          ${skin.manual ? '<div class="modal-manual-note">⚠️ Données partielles — skin récent non encore indexé par l'API</div>' : ''}
+          ${skin.manual ? `<div class="modal-manual-note">⚠️ Données partielles — skin récent non encore indexé par l'API</div>` : ''}
         </div>
 
         <!-- RIGHT: info + levels -->
@@ -1842,8 +2022,31 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* ── BOOT ────────────────────────────────────────────────────── */
-init();
+/* ── BOOT via DOMContentLoaded ───────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('[VALOSKINS] 📄 DOMContentLoaded');
+  initDOMRefs();
+  bindEvents();
+  /* Afficher le fallback immédiatement, puis tenter l'API en arrière-plan */
+  showFallbackImmediately();
+  init();
+});
+
+} catch(e) {
+  /* ── CATCH GLOBAL : toute erreur JS s'affiche sur la page ── */
+  console.error('[VALOSKINS] 💥 ERREUR GLOBALE:', e);
+  const grid = document.getElementById('grid');
+  const ldr  = document.getElementById('loader');
+  if (ldr) { ldr.style.display = 'none'; }
+  if (grid) {
+    grid.innerHTML = '<div style="padding:32px;color:#FF4655;font-family:monospace;line-height:1.7">'
+      + '<div style="font-size:1.4rem;margin-bottom:12px">💥 ERREUR JS DÉTECTÉE</div>'
+      + '<div style="color:#fbbf24;font-size:.9rem;margin-bottom:8px"><strong>' + e.name + ':</strong> ' + e.message + '</div>'
+      + (e.stack ? '<pre style="font-size:.7rem;color:rgba(255,255,255,.4);white-space:pre-wrap;max-width:700px">' + e.stack + '</pre>' : '')
+      + '<div style="margin-top:16px;font-size:.8rem;color:rgba(255,255,255,.5)">Ouvre la console (F12) pour plus de détails.</div>'
+      + '</div>';
+  }
+}
 </script>
 </body>
 </html>
