@@ -6,6 +6,7 @@
   <title>VALOSKINS — Catalogue de skins Valorant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     /* ─── RESET & ROOT ──────────────────────────────────────── */
@@ -394,13 +395,20 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      cursor: default;
-      transition: transform .22s ease, box-shadow .22s ease;
-      animation: fadeUp .4s ease both;
+      cursor: pointer;
+      /* Hauteur fixe → évite recalcul de layout au scroll */
+      min-height: 210px;
+      /* GPU isolation — repaint ne propage pas aux voisins */
+      contain: layout style paint;
+      will-change: transform;
+      /* Animation GPU-only (transform + opacity uniquement) */
+      opacity: 0;
+      transform: translateY(14px);
+      transition: transform .22s ease, box-shadow .22s ease, opacity .35s ease;
     }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .card.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
     .card:hover { transform: translateY(-5px); }
 
@@ -422,6 +430,8 @@
       padding: 8px;
       transition: transform .3s ease;
       filter: drop-shadow(0 2px 8px rgba(0,0,0,.6));
+      /* Décodage non-bloquant */
+      content-visibility: auto;
     }
     .card:hover .card-img img { transform: scale(1.06); }
 
@@ -613,10 +623,10 @@
     #empty-state p { font-family: 'Barlow Condensed', sans-serif; font-size: .95rem; letter-spacing: .1em; text-transform: uppercase; }
 
     /* ─── WISHLIST PANEL ─────────────────────────────────────── */
+    /* ─── WISHLIST OVERLAY ─────────────────────────────────── */
     #wl-overlay {
       position: fixed; inset: 0; z-index: 200;
-      background: rgba(0,0,0,.62);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,.55);
       opacity: 0; pointer-events: none;
       transition: opacity .3s;
     }
@@ -624,128 +634,296 @@
 
     #wl-panel {
       position: fixed; top: 0; right: 0;
-      width: 380px; max-width: 100vw; height: 100vh;
+      width: 400px; max-width: 100vw; height: 100vh;
       z-index: 201;
-      background: #0d1820;
-      border-left: 1px solid var(--border);
+      background: #0a1520;
+      border-left: 1px solid rgba(255,70,85,.2);
       display: flex; flex-direction: column;
       transform: translateX(100%);
       transition: transform .35s cubic-bezier(.25,.8,.25,1);
     }
     #wl-panel.open { transform: translateX(0); }
 
+    /* Header dégradé avec ligne rouge en haut */
     .wl-header {
-      display: flex; align-items: center; gap: 10px;
-      padding: 17px 18px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,70,85,.12) 0%, rgba(10,21,32,0) 100%);
+      border-top: 2px solid #FF4655;
+      border-bottom: 1px solid rgba(255,70,85,.15);
       flex-shrink: 0;
+      padding: 14px 16px 0;
     }
-    .wl-header h2 {
+    .wl-header-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .wl-header-title {
+      display: flex; align-items: center; gap: 7px;
       font-family: 'Rajdhani', sans-serif;
-      font-size: 1.05rem; font-weight: 700; letter-spacing: .08em;
-      color: var(--white); flex: 1;
+      font-size: 1rem; font-weight: 700; letter-spacing: .12em;
+      color: var(--white);
     }
+    .wl-header-actions { display: flex; align-items: center; gap: 4px; }
+    .wl-action-btn {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      color: var(--muted); font-size: .9rem;
+      width: 30px; height: 30px; border-radius: 4px;
+      cursor: pointer; transition: background .15s, color .15s;
+    }
+    .wl-action-btn:hover { background: rgba(255,70,85,.12); color: var(--white); }
     #wl-close {
       background: none; border: none; color: var(--muted);
-      font-size: 1.2rem; cursor: pointer; padding: 4px 7px;
-      border-radius: 3px; transition: color .15s, background .15s;
+      font-size: 1.1rem; cursor: pointer; padding: 4px 7px;
+      border-radius: 3px; transition: color .15s;
+      margin-left: 2px;
     }
-    #wl-close:hover { color: var(--white); background: rgba(255,255,255,.06); }
+    #wl-close:hover { color: var(--white); }
 
-    #wl-totals {
-      display: flex; gap: 14px; flex-wrap: wrap;
-      padding: 11px 18px; border-bottom: 1px solid var(--border);
+    /* Onglets listes */
+    .wl-tabs {
+      display: flex; gap: 2px;
+      border-bottom: 1px solid rgba(255,70,85,.12);
+      margin: 0 -16px; padding: 0 16px;
+    }
+    .wl-tab {
+      flex: 1; padding: 8px 4px;
+      background: none; border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .75rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer; transition: color .15s, border-color .15s;
+      margin-bottom: -1px;
+    }
+    .wl-tab:hover { color: var(--white); }
+    .wl-tab.active { color: #FF4655; border-bottom-color: #FF4655; }
+
+    /* Sort bar */
+    .wl-sort-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
-    .wl-total-item { display: flex; flex-direction: column; gap: 2px; }
-    .wl-total-label {
+    .wl-sort-label {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+      font-size: .68rem; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--muted);
     }
-    .wl-total-val {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 1.05rem; font-weight: 700; color: var(--white);
+    .wl-sort-select {
+      flex: 1; background: rgba(22,36,51,.8);
+      border: 1px solid var(--border); border-radius: 3px;
+      color: var(--white); font-family: 'Barlow', sans-serif;
+      font-size: .75rem; padding: 4px 6px; cursor: pointer;
     }
-    .wl-total-val.red { color: var(--red); }
 
+    /* Liste items */
     #wl-list {
-      flex: 1; overflow-y: auto; padding: 10px 18px;
-      display: flex; flex-direction: column; gap: 7px;
+      flex: 1; overflow-y: auto; padding: 10px 14px;
+      display: flex; flex-direction: column; gap: 6px;
       scrollbar-width: thin; scrollbar-color: var(--border) transparent;
     }
     #wl-list::-webkit-scrollbar { width: 4px; }
     #wl-list::-webkit-scrollbar-thumb { background: var(--border); }
 
     .wl-item {
-      display: flex; align-items: center; gap: 9px;
-      padding: 7px 9px;
-      background: rgba(22,36,51,.6);
-      border: 1px solid var(--border); border-radius: 4px;
-      animation: fadeUp .25s ease;
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px;
+      background: rgba(22,36,51,.7);
+      border: 1px solid var(--border); border-radius: 5px;
+      animation: wlSlideIn .22s ease both;
+      position: relative;
+    }
+    @keyframes wlSlideIn {
+      from { transform: translateX(32px); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
     }
     .wl-item-img {
-      width: 54px; height: 27px;
-      background: rgba(0,0,0,.3);
-      border-radius: 2px; object-fit: contain; flex-shrink: 0;
+      width: 80px; height: 50px; flex-shrink: 0;
+      background: rgba(0,0,0,.35); border-radius: 3px;
+      object-fit: contain;
     }
     .wl-item-info { flex: 1; min-width: 0; }
     .wl-item-name {
       font-family: 'Rajdhani', sans-serif;
-      font-size: .86rem; font-weight: 600;
+      font-size: .9rem; font-weight: 600;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .wl-item-sub {
-      font-size: .68rem; color: var(--muted);
+      font-size: .66rem; color: var(--muted);
       font-family: 'Barlow Condensed', sans-serif; letter-spacing: .04em;
+      margin-top: 1px;
     }
-    .wl-melee-tag {
-      color: #ffc107;
-      font-weight: 700;
+    .wl-melee-tag { color: #ffc107; font-weight: 700; }
+
+    /* Star rating */
+    .wl-stars {
+      display: flex; gap: 1px; margin-top: 4px;
     }
-    .filter-item-melee {
-      color: #ffc107 !important;
-      font-weight: 600;
+    .wl-star {
+      background: none; border: none;
+      color: rgba(255,255,255,.18); font-size: .85rem;
+      cursor: pointer; padding: 0; line-height: 1;
+      transition: color .1s, transform .1s;
+    }
+    .wl-star.on { color: #fbbf24; }
+    .wl-star:hover { transform: scale(1.2); }
+
+    .wl-item-right {
+      display: flex; flex-direction: column;
+      align-items: flex-end; gap: 3px; flex-shrink: 0;
     }
     .wl-item-price {
       font-family: 'Rajdhani', sans-serif;
-      font-size: .82rem; font-weight: 700; color: var(--white);
-      flex-shrink: 0; text-align: right;
+      font-size: .84rem; font-weight: 700; color: var(--white);
+      text-align: right;
     }
     .wl-item-price .wl-local {
-      display: block; font-size: .62rem; color: var(--muted);
+      display: block; font-size: .6rem; color: var(--muted);
       font-family: 'Barlow Condensed'; font-weight: 400;
     }
     .wl-remove {
       background: none; border: none; color: var(--muted);
-      font-size: .95rem; cursor: pointer; padding: 2px 5px;
-      border-radius: 2px; transition: color .15s, background .15s;
+      font-size: .9rem; cursor: pointer; padding: 2px 4px;
+      border-radius: 2px; transition: color .15s;
+      margin-top: 2px;
     }
-    .wl-remove:hover { color: var(--red); background: rgba(255,70,85,.1); }
+    .wl-remove:hover { color: var(--red); }
 
+    /* Empty state avec cœur pulsant */
     #wl-empty {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; flex: 1; gap: 12px;
+      display: none; flex-direction: column; align-items: center;
+      justify-content: center; flex: 1; gap: 10px;
       color: var(--muted); text-align: center; padding: 40px;
     }
-    #wl-empty .wl-empty-icon { font-size: 3rem; opacity: .28; }
+    #wl-empty.visible { display: flex; }
+    .wl-empty-heart {
+      font-size: 3rem;
+      animation: heartPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1);    opacity: .3; }
+      50%       { transform: scale(1.18); opacity: .7; }
+    }
     #wl-empty p {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: .82rem; letter-spacing: .1em; text-transform: uppercase;
     }
+    .wl-empty-sub {
+      font-size: .68rem; color: rgba(123,158,185,.5);
+      font-family: 'Barlow', sans-serif;
+    }
 
+    /* Résumé financier */
+    .wl-summary {
+      flex-shrink: 0; padding: 10px 16px;
+      background: rgba(15,25,35,.6);
+      border-top: 1px solid var(--border);
+    }
+    .wl-summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 3px 0;
+    }
+    .wl-summary-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .wl-summary-val {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .95rem; font-weight: 700; color: var(--white);
+    }
+    .wl-summary-val.red { color: #FF4655; }
+    .wl-summary-combined { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 6px; }
+
+    .wl-vp-input-row {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .wl-vp-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .wl-vp-input {
+      width: 80px; background: rgba(22,36,51,.9);
+      border: 1px solid var(--border); border-radius: 3px;
+      color: var(--white); font-family: 'Rajdhani', sans-serif;
+      font-size: .85rem; padding: 4px 7px;
+    }
+    .wl-vp-input:focus { outline: none; border-color: rgba(255,70,85,.4); }
+    .wl-vp-missing {
+      flex: 1; font-family: 'Barlow Condensed', sans-serif;
+      font-size: .68rem; letter-spacing: .04em; text-align: right;
+    }
+    .wl-vp-missing.ok   { color: #4ade80; }
+    .wl-vp-missing.need { color: #FF4655; }
+
+    /* Footer */
     .wl-footer {
-      padding: 13px 18px; border-top: 1px solid var(--border); flex-shrink: 0;
+      padding: 10px 16px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .wl-total-nb-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .72rem; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted);
     }
     #wl-clear {
-      width: 100%; padding: 9px;
-      background: rgba(255,70,85,.08);
-      border: 1px solid rgba(255,70,85,.25); border-radius: 3px;
-      color: var(--red);
+      padding: 7px 14px;
+      background: rgba(255,70,85,.06);
+      border: 1px solid rgba(255,70,85,.2); border-radius: 3px;
+      color: var(--muted);
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: .8rem; letter-spacing: .1em; text-transform: uppercase;
-      cursor: pointer; transition: background .2s, border-color .2s;
+      font-size: .72rem; letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer; transition: background .2s, color .2s;
     }
-    #wl-clear:hover { background: rgba(255,70,85,.18); border-color: var(--red); }
+    #wl-clear:hover { background: rgba(255,70,85,.18); color: var(--red); }
 
+    /* Export canvas (hors-écran pour html2canvas) */
+    #wl-export-canvas {
+      position: fixed; left: -9999px; top: 0;
+      width: 800px;
+      background: #0F1923;
+      padding: 32px;
+      font-family: 'Rajdhani', sans-serif;
+      color: #ECE8E1;
+    }
+
+    /* ─── MODAL SON ──────────────────────────────────────────── */
+    .modal-sound-btn {
+      position: absolute; top: 10px; right: 10px; z-index: 10;
+      background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.15);
+      color: var(--white); font-size: .9rem;
+      width: 32px; height: 32px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .modal-sound-btn:hover { background: rgba(0,0,0,.8); }
+    .modal-sound-btn.disabled { opacity: .35; cursor: not-allowed; }
+    .modal-sound-wrap {
+      position: absolute; top: 0; right: 0; z-index: 9;
+      display: flex; flex-direction: column; align-items: flex-end;
+      gap: 6px; padding: 10px;
+    }
+    .modal-sound-slider {
+      display: none;
+      -webkit-appearance: none;
+      width: 80px; height: 4px;
+      background: rgba(255,255,255,.2); border-radius: 2px;
+      outline: none; cursor: pointer;
+    }
+    .modal-sound-wrap:hover .modal-sound-slider { display: block; }
+    .modal-sound-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--white); cursor: pointer;
+    }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────── */
     /* ─── RESPONSIVE ────────────────────────────────────────── */
     @media (max-width: 980px) {
       .header-select-label { display: none; }
@@ -851,8 +1029,10 @@
       object-fit: contain; display: block;
     }
     .modal-video {
-      width: 100%; height: 100%;
+      width: 100%; height: auto;
+      max-width: 100%; max-height: 400px;
       object-fit: contain; display: block;
+      /* Rendu async — ne bloque pas le thread principal */
     }
 
     /* Swatches */
@@ -1023,32 +1203,77 @@
 <!-- WISHLIST OVERLAY + PANEL -->
 <div id="wl-overlay"></div>
 <aside id="wl-panel">
+
+  <!-- HEADER dégradé avec ligne rouge -->
   <div class="wl-header">
-    <h2>❤ MA WISHLIST</h2>
-    <button id="wl-close">✕</button>
+    <div class="wl-header-top">
+      <div class="wl-header-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF4655"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        MA WISHLIST
+      </div>
+      <div class="wl-header-actions">
+        <button class="wl-action-btn" id="wl-share-btn" title="Partager ma wishlist">📤</button>
+        <button class="wl-action-btn" id="wl-export-btn" title="Exporter en image">📸</button>
+        <button id="wl-close" title="Fermer">✕</button>
+      </div>
+    </div>
+    <!-- Onglets listes -->
+    <div class="wl-tabs" id="wl-tabs">
+      <button class="wl-tab active" data-list="0">Je veux</button>
+      <button class="wl-tab" data-list="1">J'ai déjà</button>
+      <button class="wl-tab" data-list="2">À surveiller</button>
+    </div>
   </div>
-  <div id="wl-totals">
-    <div class="wl-total-item">
-      <span class="wl-total-label">Total VP</span>
-      <span class="wl-total-val red" id="wl-total-vp">0 VP</span>
-    </div>
-    <div class="wl-total-item">
-      <span class="wl-total-label">Total <span id="wl-currency-label">EUR</span></span>
-      <span class="wl-total-val" id="wl-total-local">0,00 €</span>
-    </div>
-    <div class="wl-total-item">
-      <span class="wl-total-label">Skins</span>
-      <span class="wl-total-val" id="wl-total-nb">0</span>
-    </div>
+
+  <!-- SORT bar -->
+  <div class="wl-sort-bar">
+    <span class="wl-sort-label">Trier :</span>
+    <select id="wl-sort" class="wl-sort-select">
+      <option value="added">Ordre d'ajout</option>
+      <option value="rarity">Rareté</option>
+      <option value="price">Prix</option>
+      <option value="rating">Ma note</option>
+    </select>
   </div>
+
+  <!-- LISTE des skins -->
   <div id="wl-list"></div>
+
+  <!-- ÉTAT VIDE avec cœur pulsant -->
   <div id="wl-empty">
-    <div class="wl-empty-icon">🤍</div>
-    <p>Votre wishlist est vide<br/>Ajoutez des skins depuis le catalogue</p>
+    <div class="wl-empty-heart">🤍</div>
+    <p>Aucun skin dans ta wishlist</p>
+    <span class="wl-empty-sub">Clique sur 🤍 sur une carte pour l'ajouter</span>
   </div>
+
+  <!-- RÉSUMÉ FINANCIER -->
+  <div class="wl-summary" id="wl-summary">
+    <div class="wl-summary-row">
+      <span class="wl-summary-label">Cette liste</span>
+      <span class="wl-summary-val" id="wl-total-vp">0 VP</span>
+    </div>
+    <div class="wl-summary-row">
+      <span class="wl-summary-label">≈ <span id="wl-currency-label">EUR</span></span>
+      <span class="wl-summary-val" id="wl-total-local">0,00 €</span>
+    </div>
+    <div class="wl-summary-row wl-summary-combined" id="wl-combined-row">
+      <span class="wl-summary-label">Toutes listes</span>
+      <span class="wl-summary-val red" id="wl-combined-vp">0 VP</span>
+    </div>
+    <div class="wl-vp-input-row">
+      <label class="wl-vp-label">J'ai</label>
+      <input type="number" id="wl-vp-balance" class="wl-vp-input" placeholder="0" min="0" />
+      <span class="wl-vp-label">VP</span>
+      <span class="wl-vp-missing" id="wl-vp-missing"></span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
   <div class="wl-footer">
-    <button id="wl-clear">Vider la wishlist</button>
+    <span class="wl-total-nb-label"><span id="wl-total-nb">0</span> skin(s)</span>
+    <button id="wl-clear">🗑 Vider cette liste</button>
   </div>
+
 </aside>
 
 <!-- APP -->
@@ -1221,8 +1446,7 @@ const FALLBACK_RATES = {
 
 /* ── STATE ──────────────────────────────────────────────────── */
 let allSkins      = [];
-let wishlist      = JSON.parse(localStorage.getItem('valo-wl') || '[]');
-let fxRates       = null;   /* rates from API (base EUR) or fallback */
+let fxRates       = null;
 let selectedRegion   = 'FR';
 let selectedCurrency = 'EUR';
 
@@ -1231,6 +1455,34 @@ let fWeapons     = new Set();
 let fCollections = new Set();
 let fSort        = 'name-asc';
 let fSearch      = '';
+
+/* ── WISHLIST MULTI-LISTES ───────────────────────────────────── */
+/* Structure : { lists: [[uuid,...],[uuid,...],[uuid,...]], ratings: {uuid:1-5} } */
+const WL_KEY     = 'valo-wl-v2';
+const WL_NAMES   = ['Je veux', "J'ai déjà", 'À surveiller'];
+let   wlData     = loadWLData();
+let   activeList = 0;   /* 0 | 1 | 2 */
+let   wlSort     = 'added';
+
+function loadWLData() {
+  try {
+    const raw = localStorage.getItem(WL_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d.lists && Array.isArray(d.lists) && d.lists.length === 3) return d;
+    }
+  } catch {}
+  return { lists: [[], [], []], ratings: {} };
+}
+function saveWLData() {
+  localStorage.setItem(WL_KEY, JSON.stringify(wlData));
+}
+/* Compat: on garde wishlist comme alias vers liste active */
+function getActiveList() { return wlData.lists[activeList] || []; }
+
+/* ── SON VIDEO ───────────────────────────────────────────────── */
+let soundEnabled = localStorage.getItem('valo-sound') !== 'false';
+let soundVolume  = parseFloat(localStorage.getItem('valo-vol') || '0.7');
 
 /* ── DOM (résolution paresseuse — évite les nulls au boot) ──── */
 /* Toutes les refs sont récupérées via une fonction pour éviter
@@ -1424,8 +1676,8 @@ async function init() {
       let wRes, tRes;
       try {
         [wRes, tRes] = await Promise.all([
-          fetchWithTimeout('https://valorant-api.com/v1/weapons', {}, 10000),
-          fetchWithTimeout('https://valorant-api.com/v1/themes',  {}, 10000),
+          fetchWithTimeout('https://valorant-api.com/v1/weapons', { cache: 'force-cache' }, 10000),
+          fetchWithTimeout('https://valorant-api.com/v1/themes',  { cache: 'force-cache' }, 10000),
         ]);
         console.log('[VALOSKINS] 📡 Réponses HTTP —', wRes.status, '/', tRes.status);
         if (!wRes.ok) throw new Error('weapons HTTP ' + wRes.status);
@@ -1472,60 +1724,107 @@ async function init() {
     console.log('[VALOSKINS] 💱 Fetch taux de change…');
     await fetchRates();
 
-    /* Build theme name map */
-    const themeMap = {};
-    (themesData.data || []).forEach(t => { themeMap[t.uuid] = t.displayName; });
-    console.log('[VALOSKINS] 🗺 themeMap construit —', Object.keys(themeMap).length, 'thèmes');
+    /* ── Traitement dans un Web Worker pour ne pas bloquer l'UI ── */
+    console.log('[VALOSKINS] 🧵 Lancement du Web Worker pour traitement des données…');
 
-    /* Flatten skins */
-    const skins = [];
-    const apiUuids = new Set();
+    const workerCode = `
+self.onmessage = function(e) {
+  const { weaponsData, themesData, TIERS, WEAPON_PRICE, MELEE_PRICE, MANUAL_SKINS } = e.data;
 
-    (weaponsData.data || []).forEach(weapon => {
-      (weapon.skins || []).forEach(skin => {
-        if (!skin.contentTierUuid) return;
-        if (!TIERS[skin.contentTierUuid]) return;
-        if ((skin.displayName || '').toLowerCase().includes('standard')) return;
+  const themeMap = {};
+  (themesData.data || []).forEach(t => { themeMap[t.uuid] = t.displayName; });
 
-        const baseTier   = TIERS[skin.contentTierUuid];
-        const weaponName = weapon.displayName;
-        const isMelee    = weaponName === 'Melee';
+  const skins = [];
+  const skinRaw = {};
+  const apiUuids = new Set();
 
-        const priceTable = isMelee ? MELEE_PRICE : WEAPON_PRICE;
-        const priceData  = priceTable[baseTier.key] || { vp: 0, eur: 0 };
-        const tier = { ...baseTier, vp: priceData.vp, isMelee };
+  (weaponsData.data || []).forEach(weapon => {
+    (weapon.skins || []).forEach(skin => {
+      if (!skin.contentTierUuid) return;
+      if (!TIERS[skin.contentTierUuid]) return;
+      if ((skin.displayName || '').toLowerCase().includes('standard')) return;
 
-        const img  = skin.displayIcon
-          || (skin.chromas && skin.chromas[0] && skin.chromas[0].displayIcon)
-          || null;
-        const col  = skin.themeUuid ? (themeMap[skin.themeUuid] || 'Unknown') : 'Unknown';
+      const baseTier   = TIERS[skin.contentTierUuid];
+      const weaponName = weapon.displayName;
+      const isMelee    = weaponName === 'Melee';
+      const priceTable = isMelee ? MELEE_PRICE : WEAPON_PRICE;
+      const priceData  = priceTable[baseTier.key] || { vp: 0 };
+      const tier       = { ...baseTier, vp: priceData.vp, isMelee };
+      const img        = skin.displayIcon
+        || (skin.chromas && skin.chromas[0] && skin.chromas[0].displayIcon)
+        || null;
+      const col = skin.themeUuid ? (themeMap[skin.themeUuid] || 'Unknown') : 'Unknown';
 
-        skinStore[skin.uuid] = skin;
-        apiUuids.add(skin.uuid);
-        skins.push({ uuid: skin.uuid, name: skin.displayName, weapon: weaponName, collection: col, tier, img });
-      });
+      skinRaw[skin.uuid] = skin;
+      apiUuids.add(skin.uuid);
+      skins.push({ uuid: skin.uuid, name: skin.displayName, weapon: weaponName, collection: col, tier, img });
+    });
+  });
+
+  MANUAL_SKINS.forEach(m => {
+    if (apiUuids.has(m.uuid)) return;
+    const isMelee   = m.weapon === 'Melee';
+    const tierEntry = Object.values(TIERS).find(t => t.key === m.rarity);
+    if (!tierEntry) return;
+    const tier = { ...tierEntry, vp: m.vp, isMelee };
+    skins.push({ uuid: m.uuid, name: m.name, weapon: m.weapon, collection: m.collection, tier, img: null, manual: true });
+  });
+
+  self.postMessage({ skins, skinRaw });
+};`;
+
+    const blob   = new Blob([workerCode], { type: 'application/javascript' });
+    const blobURL = URL.createObjectURL(blob);
+    const worker  = new Worker(blobURL);
+
+    await new Promise((resolve, reject) => {
+      worker.onmessage = (e) => {
+        const { skins, skinRaw } = e.data;
+        Object.assign(skinStore, skinRaw);
+        allSkins = skins;
+        worker.terminate();
+        URL.revokeObjectURL(blobURL);
+        console.log('[VALOSKINS] 🧵 Worker terminé —', skins.length, "skins traités");
+        resolve();
+      };
+      worker.onerror = (err) => {
+        console.warn('[VALOSKINS] ⚠️ Worker erreur, fallback main thread:', err.message);
+        worker.terminate(); URL.revokeObjectURL(blobURL);
+        /* Fallback: traitement sur le main thread */
+        const themeMap = {};
+        (themesData.data || []).forEach(t => { themeMap[t.uuid] = t.displayName; });
+        const skins = []; const apiUuids = new Set();
+        (weaponsData.data || []).forEach(weapon => {
+          (weapon.skins || []).forEach(skin => {
+            if (!skin.contentTierUuid || !TIERS[skin.contentTierUuid]) return;
+            if ((skin.displayName||'').toLowerCase().includes('standard')) return;
+            const baseTier = TIERS[skin.contentTierUuid];
+            const weaponName = weapon.displayName; const isMelee = weaponName === 'Melee';
+            const priceData = (isMelee ? MELEE_PRICE : WEAPON_PRICE)[baseTier.key] || { vp:0 };
+            const tier = { ...baseTier, vp: priceData.vp, isMelee };
+            const img = skin.displayIcon || (skin.chromas?.[0]?.displayIcon) || null;
+            const col = skin.themeUuid ? (themeMap[skin.themeUuid] || 'Unknown') : 'Unknown';
+            skinStore[skin.uuid] = skin; apiUuids.add(skin.uuid);
+            skins.push({ uuid: skin.uuid, name: skin.displayName, weapon: weaponName, collection: col, tier, img });
+          });
+        });
+        MANUAL_SKINS.forEach(m => {
+          if (apiUuids.has(m.uuid)) return;
+          const tierEntry = Object.values(TIERS).find(t => t.key === m.rarity); if (!tierEntry) return;
+          skins.push({ uuid: m.uuid, name: m.name, weapon: m.weapon, collection: m.collection, tier: { ...tierEntry, vp: m.vp, isMelee: m.weapon==='Melee' }, img: null, manual: true });
+        });
+        allSkins = skins;
+        resolve();
+      };
+      worker.postMessage({ weaponsData, themesData, TIERS, WEAPON_PRICE, MELEE_PRICE, MANUAL_SKINS });
     });
 
-    console.log('[VALOSKINS] 🎨', skins.length, "skins traités depuis l'API");
-
-    /* Merge MANUAL_SKINS */
-    MANUAL_SKINS.forEach(m => {
-      if (apiUuids.has(m.uuid)) return;
-      const isMelee   = m.weapon === 'Melee';
-      const tierEntry = Object.values(TIERS).find(t => t.key === m.rarity);
-      if (!tierEntry) return;
-      const tier = { ...tierEntry, vp: m.vp, isMelee };
-      skins.push({ uuid: m.uuid, name: m.name, weapon: m.weapon, collection: m.collection, tier, img: null, manual: true });
-    });
-
-    allSkins = skins;
-    console.log('[VALOSKINS] ✅ allSkins prêt —', allSkins.length, 'skins totaux. Mise à jour rendu depuis API…');
-    /* Fallback déjà affiché — remplacer silencieusement par les données API */
+    console.log('[VALOSKINS] ✅ allSkins prêt —', allSkins.length, 'skins totaux. Mise à jour rendu…');
     $errBox.style.display = 'none';
     buildDynamicFilters();
     render();
     updateWishlistUI();
-    console.log('[VALOSKINS] 🏁 init() terminé avec succès —', allSkins.length, 'skins API chargés');
+    console.log('[VALOSKINS] 🏁 init() terminé —', allSkins.length, 'skins');
 
   } catch (e) {
     console.error('[VALOSKINS] ❌ Erreur inattendue dans init():', e);
@@ -1632,15 +1931,14 @@ const PAGE_SIZE = 60;
 let   _renderList = [];
 let   _renderOffset = 0;
 
-function cardHTML(s, i) {
-  const inWl  = wishlist.includes(s.uuid);
-  const delay = Math.min(i * 22, 260);
-  const img   = s.img
-    ? `<img src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" /><svg class="img-fallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`
+function cardHTML(s) {
+  const inWl = wlData.lists.some(l => l.includes(s.uuid));
+  const img  = s.img
+    ? `<img src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" decoding="async" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" /><svg class="img-fallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`
     : `<svg class="img-fallback" style="display:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>`;
 
   return `
-  <div class="card" data-r="${esc(s.tier.key)}" data-uuid="${esc(s.uuid)}" style="animation-delay:${delay}ms" role="button" tabindex="0" aria-label="Voir ${esc(s.name)}">
+  <div class="card" data-r="${esc(s.tier.key)}" data-uuid="${esc(s.uuid)}" role="button" tabindex="0" aria-label="Voir ${esc(s.name)}">
     <div class="card-bar" style="background:${esc(s.tier.color)}"></div>
     <div class="card-img">${img}</div>
     <div class="card-body">
@@ -1663,23 +1961,75 @@ function cardHTML(s, i) {
   </div>`;
 }
 
+/* Observers réutilisables */
+let _cardObserver = null;
+let _sentinelObs  = null;
+
+/* Anime les cartes quand elles entrent dans le viewport */
+function observeCard(el) {
+  if (!_cardObserver) {
+    _cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          _cardObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.04 });
+  }
+  _cardObserver.observe(el);
+}
+
+/* Précharge les images des N premiers skins */
+function preloadFirstImages(list, n = 12) {
+  list.slice(0, n).forEach(s => {
+    if (!s.img) return;
+    if (document.head.querySelector(`link[href="${s.img}"]`)) return;
+    const lnk = document.createElement('link');
+    lnk.rel = 'preload'; lnk.as = 'image'; lnk.href = s.img;
+    document.head.appendChild(lnk);
+  });
+}
+
 function appendCards(list, from, count) {
-  const frag = document.createDocumentFragment();
-  const tmp  = document.createElement('div');
+  const frag  = document.createDocumentFragment();
+  const tmp   = document.createElement('div');
   const slice = list.slice(from, from + count);
-  tmp.innerHTML = slice.map((s, i) => cardHTML(s, from + i)).join('');
+
+  tmp.innerHTML = slice.map(s => cardHTML(s)).join('');
+
+  /* Collect card elements before moving to fragment */
+  const cards = Array.from(tmp.querySelectorAll('.card'));
+
+  /* Remove old sentinel */
+  const oldSentinel = $grid.querySelector('.load-more-sentinel');
+  if (oldSentinel) { if (_sentinelObs) { _sentinelObs.disconnect(); _sentinelObs = null; } oldSentinel.remove(); }
+
   while (tmp.firstChild) frag.appendChild(tmp.firstChild);
-  /* remove old load-more sentinel if present */
-  const old = $grid.querySelector('.load-more-sentinel');
-  if (old) old.remove();
   $grid.appendChild(frag);
-  /* add sentinel if more cards remain */
+
+  /* Trigger entrance animation via IntersectionObserver */
+  cards.forEach(el => observeCard(el));
+
+  /* Auto-load on scroll via IntersectionObserver sentinel */
   if (from + count < list.length) {
     const sentinel = document.createElement('div');
     sentinel.className = 'load-more-sentinel';
-    sentinel.innerHTML = `<button class="load-more-btn" id="load-more-btn">Charger ${Math.min(PAGE_SIZE, list.length - from - count)} skins de plus</button>`;
+    const remaining = list.length - from - count;
+    sentinel.innerHTML = `<button class="load-more-btn" id="load-more-btn">Charger ${Math.min(PAGE_SIZE, remaining)} skins de plus</button>`;
     $grid.appendChild(sentinel);
+
+    _sentinelObs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        _sentinelObs.disconnect(); _sentinelObs = null;
+        _renderOffset += count;
+        appendCards(_renderList, _renderOffset, PAGE_SIZE);
+      }
+    }, { rootMargin: '300px' });
+    _sentinelObs.observe(sentinel);
+
     document.getElementById('load-more-btn').addEventListener('click', () => {
+      if (_sentinelObs) { _sentinelObs.disconnect(); _sentinelObs = null; }
       _renderOffset += count;
       appendCards(_renderList, _renderOffset, PAGE_SIZE);
     });
@@ -1691,86 +2041,181 @@ function render() {
   _renderList   = list;
   _renderOffset = 0;
 
+  if (_cardObserver) { _cardObserver.disconnect(); _cardObserver = null; }
+  if (_sentinelObs)  { _sentinelObs.disconnect();  _sentinelObs  = null; }
+
   $errBox.style.display = 'none';
   $empty.style.display  = list.length ? 'none' : 'flex';
   $rCount.innerHTML = `<strong>${list.length}</strong> skins affichés sur <strong>${allSkins.length}</strong>`;
 
   $grid.innerHTML = '';
   if (!list.length) return;
+
+  preloadFirstImages(list, 12);
   appendCards(list, 0, PAGE_SIZE);
 }
 
 /* ── WISHLIST LOGIC ──────────────────────────────────────────── */
-function saveWishlist() {
-  localStorage.setItem('valo-wl', JSON.stringify(wishlist));
-}
+/* DOM refs des items wishlist pour mises à jour ciblées */
+const wlItemRefs = new Map(); /* uuid → element DOM */
 
 function toggleWishlist(uuid) {
-  const idx = wishlist.indexOf(uuid);
-  if (idx === -1) wishlist.push(uuid);
-  else wishlist.splice(idx, 1);
-  saveWishlist();
-  updateWishlistUI();
+  const list = wlData.lists[activeList];
+  const idx  = list.indexOf(uuid);
+  const adding = idx === -1;
+  if (adding) list.push(uuid);
+  else list.splice(idx, 1);
+  saveWLData();
 
-  const btn = $grid.querySelector(`.wl-btn[data-uuid="${uuid}"]`);
-  if (btn) {
-    const inWl = wishlist.includes(uuid);
-    btn.textContent = inWl ? '❤️' : '🤍';
-    btn.title = inWl ? 'Retirer de la wishlist' : 'Ajouter à la wishlist';
-    btn.classList.toggle('in-list', inWl);
-    if (inWl) { btn.classList.remove('in-list'); void btn.offsetWidth; btn.classList.add('in-list'); }
+  /* Mise à jour ciblée du panel wishlist (sans rebuild complet) */
+  const inAnyList = wlData.lists.some(l => l.includes(uuid));
+  if (adding) {
+    /* Ajouter l'item directement */
+    wlPatchAdd(uuid);
+  } else {
+    /* Supprimer l'item directement */
+    wlPatchRemove(uuid);
   }
+  wlUpdateTotals();
+
+  /* Mettre à jour boutons cœur dans la grille */
+  document.querySelectorAll(`.wl-btn[data-uuid="${uuid}"]`).forEach(btn => {
+    btn.textContent = inAnyList ? '❤️' : '🤍';
+    btn.title = inAnyList ? 'Retirer de la wishlist' : 'Ajouter à la wishlist';
+    btn.classList.toggle('in-list', inAnyList);
+    if (inAnyList) { btn.classList.remove('in-list'); void btn.offsetWidth; btn.classList.add('in-list'); }
+  });
+}
+
+function wlPatchAdd(uuid) {
+  const s = allSkins.find(x => x.uuid === uuid);
+  if (!s) return;
+  const dispStr = formatPrice(vpToDisplay(s.tier.vp), selectedCurrency);
+  const rating  = wlData.ratings[s.uuid] || 0;
+  const stars   = [1,2,3,4,5].map(n => `<button class="wl-star${n<=rating?' on':''}" data-star="${n}">★</button>`).join('');
+
+  const div = document.createElement('div');
+  div.className = 'wl-item';
+  div.innerHTML = `
+    ${s.img ? `<img class="wl-item-img" src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" decoding="async" onerror="this.style.display='none'" />` : `<div class="wl-item-img"></div>`}
+    <div class="wl-item-info">
+      <div class="wl-item-name">${esc(s.name)}</div>
+      <div class="wl-item-sub">
+        ${s.tier.isMelee ? '<span class="wl-melee-tag">🔪 MELEE</span> · ' : esc(s.weapon) + ' · '}
+        <span style="color:${esc(s.tier.color)}">${esc(s.tier.label)}</span>
+      </div>
+      <div class="wl-stars" data-uuid="${esc(s.uuid)}">${stars}</div>
+    </div>
+    <div class="wl-item-right">
+      <div class="wl-item-price">${s.tier.vp.toLocaleString('fr-FR')} VP<span class="wl-local">≈ ${esc(dispStr)}</span></div>
+      <button class="wl-remove" data-uuid="${esc(s.uuid)}" title="Retirer">✕</button>
+    </div>`;
+
+  wlItemRefs.set(uuid, div);
+  $wlEmpty.classList.remove('visible');
+  $wlList.appendChild(div);
+}
+
+function wlPatchRemove(uuid) {
+  const el = wlItemRefs.get(uuid);
+  if (el) { el.remove(); wlItemRefs.delete(uuid); }
+  if (getActiveList().length === 0) $wlEmpty.classList.add('visible');
+}
+
+function wlUpdateTotals() {
+  const items = getSortedItems(activeList);
+  let totalVp = 0, totalDisp = 0;
+  items.forEach(s => { totalVp += s.tier.vp; totalDisp += vpToDisplay(s.tier.vp); });
+  let combVp = 0;
+  wlData.lists.forEach(l => l.forEach(uid => { const s = allSkins.find(x => x.uuid === uid); if (s) combVp += s.tier.vp; }));
+  const allCount = wlData.lists.reduce((n,l) => n + l.length, 0);
+
+  $wlCount.textContent = allCount || '';
+  $wlCount.classList.remove('bump'); void $wlCount.offsetWidth; $wlCount.classList.add('bump');
+  $wlTotalVp.textContent    = totalVp.toLocaleString('fr-FR') + ' VP';
+  $wlTotalLocal.textContent = formatPrice(totalDisp, selectedCurrency);
+  $wlTotalNb.textContent    = items.length;
+  const combEl = document.getElementById('wl-combined-vp');
+  if (combEl) combEl.textContent = combVp.toLocaleString('fr-FR') + ' VP';
+  /* VP missing */
+  const balanceEl = document.getElementById('wl-vp-balance');
+  const missingEl = document.getElementById('wl-vp-missing');
+  if (balanceEl && missingEl) {
+    const bal = parseInt(balanceEl.value) || 0;
+    if (bal > 0) {
+      const diff = combVp - bal;
+      missingEl.textContent = diff <= 0 ? '✓ Tu as assez !' : '−' + diff.toLocaleString('fr-FR') + ' VP manquants';
+      missingEl.className = 'wl-vp-missing ' + (diff <= 0 ? 'ok' : 'need');
+    } else missingEl.textContent = '';
+  }
+}
+
+function setRating(uuid, stars) {
+  wlData.ratings[uuid] = stars;
+  saveWLData();
+  /* re-render stars in place */
+  const starsEl = $wlList.querySelector(`.wl-stars[data-uuid="${uuid}"]`);
+  if (starsEl) starsEl.querySelectorAll('.wl-star').forEach((s,i) => s.classList.toggle('on', i < stars));
+}
+
+function getSortedItems(listIdx) {
+  const uuids = wlData.lists[listIdx] || [];
+  let items = uuids.map(uuid => allSkins.find(s => s.uuid === uuid)).filter(Boolean);
+  switch (wlSort) {
+    case 'rarity':  items.sort((a,b) => TIER_ORDER.indexOf(b.tier.key) - TIER_ORDER.indexOf(a.tier.key)); break;
+    case 'price':   items.sort((a,b) => b.tier.vp - a.tier.vp); break;
+    case 'rating':  items.sort((a,b) => (wlData.ratings[b.uuid]||0) - (wlData.ratings[a.uuid]||0)); break;
+    /* default: added order */
+  }
+  return items;
 }
 
 function updateWishlistUI() {
-  const count = wishlist.length;
-  $wlCount.textContent = count;
-  $wlCount.classList.remove('bump');
-  void $wlCount.offsetWidth;
-  $wlCount.classList.add('bump');
-
-  const sym = SYM[selectedCurrency] || selectedCurrency;
+  /* Rebuild complet du panel (tab switch, tri, rechargement API) */
+  const items = getSortedItems(activeList);
+  const count = items.length;
   $wlCurrLabel.textContent = selectedCurrency;
+  wlItemRefs.clear();
 
-  const items = wishlist.map(uuid => allSkins.find(s => s.uuid === uuid)).filter(Boolean);
-  let totalVp = 0, totalDisp = 0;
-  items.forEach(s => {
-    totalVp   += s.tier.vp;
-    totalDisp += vpToDisplay(s.tier.vp);
-  });
-
-  $wlTotalVp.textContent    = totalVp.toLocaleString('fr-FR') + ' VP';
-  $wlTotalLocal.textContent = formatPrice(totalDisp, selectedCurrency);
-  $wlTotalNb.textContent    = count;
-
+  /* Empty state */
   if (!count) {
     $wlList.innerHTML = '';
-    $wlEmpty.style.display = 'flex';
+    wlItemRefs.clear();
+    $wlEmpty.classList.add('visible');
+    wlUpdateTotals();
     return;
   }
-  $wlEmpty.style.display = 'none';
-  $wlList.innerHTML = items.map(s => {
-    const dispAmt = vpToDisplay(s.tier.vp);
-    const dispStr = formatPrice(dispAmt, selectedCurrency);
-    return `
-    <div class="wl-item">
-      ${s.img
-        ? `<img class="wl-item-img" src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" onerror="this.style.display='none'" />`
-        : `<div class="wl-item-img"></div>`}
+  $wlEmpty.classList.remove('visible');
+
+  /* Rebuild via DocumentFragment — populate wlItemRefs */
+  const frag = document.createDocumentFragment();
+  items.forEach((s, idx) => {
+    const dispStr = formatPrice(vpToDisplay(s.tier.vp), selectedCurrency);
+    const rating  = wlData.ratings[s.uuid] || 0;
+    const stars   = [1,2,3,4,5].map(n => `<button class="wl-star${n<=rating?' on':''}" data-star="${n}">★</button>`).join('');
+    const div = document.createElement('div');
+    div.className = 'wl-item';
+    div.style.animationDelay = (idx * 22) + 'ms';
+    div.innerHTML = `
+      ${s.img ? `<img class="wl-item-img" src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy" decoding="async" onerror="this.style.display='none'" />` : `<div class="wl-item-img"></div>`}
       <div class="wl-item-info">
         <div class="wl-item-name">${esc(s.name)}</div>
         <div class="wl-item-sub">
           ${s.tier.isMelee ? '<span class="wl-melee-tag">🔪 MELEE</span> · ' : esc(s.weapon) + ' · '}
           <span style="color:${esc(s.tier.color)}">${esc(s.tier.label)}</span>
         </div>
+        <div class="wl-stars" data-uuid="${esc(s.uuid)}">${stars}</div>
       </div>
-      <div class="wl-item-price">
-        ${s.tier.vp} VP
-        <span class="wl-local">≈ ${esc(dispStr)}</span>
-      </div>
-      <button class="wl-remove" data-uuid="${esc(s.uuid)}" title="Retirer">✕</button>
-    </div>`;
-  }).join('');
+      <div class="wl-item-right">
+        <div class="wl-item-price">${s.tier.vp.toLocaleString('fr-FR')} VP<span class="wl-local">≈ ${esc(dispStr)}</span></div>
+        <button class="wl-remove" data-uuid="${esc(s.uuid)}" title="Retirer">✕</button>
+      </div>`;
+    wlItemRefs.set(s.uuid, div);
+    frag.appendChild(div);
+  });
+  $wlList.innerHTML = '';
+  $wlList.appendChild(frag);
+  wlUpdateTotals();
 }
 
 /* ── WISHLIST PANEL ─────────────────────────────────────────── */
@@ -1801,6 +2246,14 @@ let _searchTimer = null;
 function bindEvents() {
   console.log('[VALOSKINS] 🔗 bindEvents()');
 
+  /* Throttle scroll à 16ms (≈60fps) */
+  let _scrollThrottled = false;
+  window.addEventListener('scroll', () => {
+    if (_scrollThrottled) return;
+    _scrollThrottled = true;
+    requestAnimationFrame(() => { _scrollThrottled = false; });
+  }, { passive: true });
+
   /* Grid delegation */
   $grid.addEventListener('click', e => {
     const btn = e.target.closest('.wl-btn');
@@ -1827,14 +2280,12 @@ function bindEvents() {
 
   /* Region */
   $regionSel.addEventListener('change', e => {
-    selectedRegion = e.target.value;
-    render(); updateWishlistUI();
+    selectedRegion = e.target.value; render(); updateWishlistUI();
   });
 
   /* Currency */
   $currSel.addEventListener('change', e => {
-    selectedCurrency = e.target.value;
-    render(); updateWishlistUI();
+    selectedCurrency = e.target.value; render(); updateWishlistUI();
   });
 
   /* Reset */
@@ -1850,28 +2301,118 @@ function bindEvents() {
   /* Retry button */
   $id('retry-btn').addEventListener('click', () => {
     try { sessionStorage.removeItem('valo-skins-cache-v2'); } catch {}
-    $errBox.style.position = '';
-    $errBox.style.margin   = '';
-    $loader.style.display  = 'flex';
-    $loader.classList.remove('hidden');
+    $errBox.style.position = ''; $errBox.style.margin = '';
+    $loader.style.display = 'flex'; $loader.classList.remove('hidden');
     init();
   });
 
-  /* Wishlist panel */
+  /* ── WISHLIST PANEL ─────────────────────────────────── */
   $wlBtn.addEventListener('click', openWL);
   $wlClose.addEventListener('click', closeWL);
   $wlOverlay.addEventListener('click', closeWL);
 
-  $wlList.addEventListener('click', e => {
-    const btn = e.target.closest('.wl-remove');
-    if (btn) { toggleWishlist(btn.dataset.uuid); render(); }
+  /* Onglets listes */
+  $id('wl-tabs').addEventListener('click', e => {
+    const tab = e.target.closest('.wl-tab');
+    if (!tab) return;
+    activeList = parseInt(tab.dataset.list, 10);
+    document.querySelectorAll('.wl-tab').forEach((t,i) => t.classList.toggle('active', i === activeList));
+    updateWishlistUI();
   });
 
+  /* Sort wishlist */
+  $id('wl-sort').addEventListener('change', e => { wlSort = e.target.value; updateWishlistUI(); });
+
+  /* WL list delegation: remove + stars */
+  $wlList.addEventListener('click', e => {
+    const rm = e.target.closest('.wl-remove');
+    if (rm) { toggleWishlist(rm.dataset.uuid); return; }
+    const star = e.target.closest('.wl-star');
+    if (star) {
+      const starsEl = star.closest('.wl-stars');
+      if (starsEl) setRating(starsEl.dataset.uuid, parseInt(star.dataset.star, 10));
+    }
+  });
+
+  /* Clear liste active */
   $wlClear.addEventListener('click', () => {
-    wishlist = [];
-    saveWishlist();
+    wlData.lists[activeList] = [];
+    saveWLData();
     updateWishlistUI();
     render();
+  });
+
+  /* VP balance input */
+  $id('wl-vp-balance').addEventListener('input', updateWishlistUI);
+
+  /* ── PARTAGER wishlist ──────────────────────────────── */
+  $id('wl-share-btn').addEventListener('click', () => {
+    const uuids = getActiveList();
+    if (!uuids.length) { alert('Cette liste est vide !'); return; }
+    const encoded = btoa(uuids.join(','));
+    const url = location.href.split('#')[0] + '#wishlist=' + encoded;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = $id('wl-share-btn');
+      btn.textContent = '✓'; btn.style.color = '#4ade80';
+      setTimeout(() => { btn.textContent = '📤'; btn.style.color = ''; }, 2000);
+    }).catch(() => prompt('Copie cette URL :', url));
+  });
+
+  /* ── EXPORTER wishlist en image ─────────────────────── */
+  $id('wl-export-btn').addEventListener('click', async () => {
+    const items = getSortedItems(activeList);
+    if (!items.length) { alert('Cette liste est vide !'); return; }
+    const btn = $id('wl-export-btn');
+    btn.textContent = '⏳'; btn.disabled = true;
+
+    /* Créer un canvas hors-écran */
+    const canvas = document.createElement('div');
+    canvas.id = 'wl-export-canvas';
+    canvas.style.cssText = [
+      'position:fixed','left:-9999px','top:0','width:800px',
+      'background:#0F1923','padding:32px','font-family:Rajdhani,sans-serif',
+      'color:#ECE8E1','border-top:3px solid #FF4655'
+    ].join(';');
+
+    canvas.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF4655"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span style="font-size:1.3rem;font-weight:700;letter-spacing:.12em">${WL_NAMES[activeList].toUpperCase()}</span>
+        <span style="margin-left:auto;font-size:.85rem;color:rgba(255,255,255,.4)">${new Date().toLocaleDateString('fr-FR')}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+        ${items.map(s => `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px">
+            ${s.img ? `<img src="${s.img}" style="width:80px;height:50px;object-fit:contain;flex-shrink:0" crossorigin="anonymous"/>` : '<div style="width:80px;height:50px;background:rgba(255,255,255,.05);flex-shrink:0;border-radius:3px"></div>'}
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
+              <div style="font-size:.7rem;color:${s.tier.color};letter-spacing:.06em">${s.tier.label}</div>
+              <div style="font-size:.78rem;color:#fbbf24;font-weight:700;margin-top:2px">${s.tier.vp.toLocaleString('fr-FR')} VP</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.75rem;color:rgba(255,255,255,.35);letter-spacing:.08em">VALOSKINS</span>
+        <div style="text-align:right">
+          <div style="font-size:.7rem;color:rgba(255,255,255,.4);letter-spacing:.08em">TOTAL</div>
+          <div style="font-size:1.4rem;font-weight:700;color:#FF4655">${items.reduce((n,s)=>n+s.tier.vp,0).toLocaleString('fr-FR')} VP</div>
+        </div>
+      </div>`;
+    document.body.appendChild(canvas);
+
+    try {
+      if (typeof html2canvas === 'undefined') throw new Error('html2canvas non chargé');
+      const cvs = await html2canvas(canvas, { backgroundColor: '#0F1923', scale: 2, useCORS: true, logging: false });
+      const link = document.createElement('a');
+      link.download = 'valoskins-wishlist.png';
+      link.href = cvs.toDataURL('image/png');
+      link.click();
+    } catch(err) {
+      alert('Export impossible : ' + err.message);
+    } finally {
+      canvas.remove();
+      btn.textContent = '📸'; btn.disabled = false;
+    }
   });
 }
 
@@ -1917,8 +2458,9 @@ function openModal(uuid) {
 
   /* First image/video */
   const firstChroma = chromas[0] || {};
-  const firstMedia  = firstChroma.streamedVideo
-    ? `<video class="modal-video" autoplay loop muted playsinline preload="none" src="${esc(firstChroma.streamedVideo)}"></video>`
+  const hasVideo    = !!firstChroma.streamedVideo;
+  const firstMedia  = hasVideo
+    ? makeVideo(firstChroma.streamedVideo, firstChroma.displayIcon || skin.img || '')
     : `<img class="modal-img" src="${esc(firstChroma.fullRender || firstChroma.displayIcon || skin.img || '')}" alt="${esc(skin.name)}" />`;
 
   const modal = document.createElement('div');
@@ -1931,8 +2473,16 @@ function openModal(uuid) {
       <div class="modal-layout">
         <!-- LEFT: media + swatches -->
         <div class="modal-left">
-          <div class="modal-media-wrap" id="modal-media">
+          <div class="modal-media-wrap" id="modal-media" style="position:relative">
             ${firstMedia}
+            ${hasVideo ? `
+            <div class="modal-sound-wrap" id="modal-sound-wrap">
+              <button class="modal-sound-btn" id="modal-sound-btn" title="${soundEnabled ? 'Couper le son' : 'Activer le son'}">
+                ${soundEnabled ? '🔊' : '🔇'}
+              </button>
+              <input type="range" class="modal-sound-slider" id="modal-sound-slider"
+                min="0" max="100" value="${Math.round(soundVolume*100)}" title="Volume" />
+            </div>` : ''}
           </div>
           ${swatchesHTML ? `<div class="modal-swatches" id="modal-swatches">${swatchesHTML}</div>` : ''}
           ${skin.manual ? `<div class="modal-manual-note">⚠️ Données partielles — skin récent non encore indexé par l'API</div>` : ''}
@@ -1966,7 +2516,71 @@ function openModal(uuid) {
 
   /* Auto-play first video if exists */
   const vid = modal.querySelector('.modal-video');
-  if (vid) { vid.src = firstChroma.streamedVideo; vid.play().catch(()=>{}); }
+  if (vid) {
+    startVideo(vid, soundVolume);
+
+    /* Detect if video has audio (after metadata loads) */
+    vid.addEventListener('loadedmetadata', () => {
+      const soundBtn = document.getElementById('modal-sound-btn');
+      if (!soundBtn) return;
+      /* mozHasAudio / webkitAudioDecodedByteCount may not be reliable;
+         we'll try playing with sound — if it fails or stream has no audio track,
+         the button stays but we show a tooltip */
+      const hasAudio = vid.mozHasAudio !== undefined ? vid.mozHasAudio
+        : vid.webkitAudioDecodedByteCount !== undefined ? vid.webkitAudioDecodedByteCount > 0
+        : true; /* assume has audio by default */
+      if (!hasAudio) {
+        soundBtn.classList.add('disabled');
+        soundBtn.title = "Pas d'audio disponible";
+        soundBtn.disabled = true;
+      }
+    }, { once: true });
+  }
+
+  /* ── Son — toggle + slider ── */
+  const soundBtn    = document.getElementById('modal-sound-btn');
+  const soundSlider = document.getElementById('modal-sound-slider');
+  if (soundBtn) {
+    soundBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('valo-sound', soundEnabled);
+      soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+      soundBtn.title = soundEnabled ? 'Couper le son' : 'Activer le son';
+      const v = modal.querySelector('.modal-video');
+      if (v) { v.muted = !soundEnabled; if (soundEnabled) v.volume = soundVolume; }
+    });
+  }
+  if (soundSlider) {
+    soundSlider.addEventListener('input', () => {
+      soundVolume = parseFloat(soundSlider.value) / 100;
+      localStorage.setItem('valo-vol', soundVolume);
+      const v = modal.querySelector('.modal-video');
+      if (v) { v.volume = soundVolume; if (soundVolume > 0 && !soundEnabled) { soundEnabled = true; v.muted = false; soundBtn.textContent = '🔊'; } }
+    });
+  }
+
+  /* ── Helper: inject video (lazy src + RAF sync + poster) ── */
+  function makeVideo(src, poster='') {
+    const mutedAttr = soundEnabled ? '' : 'muted';
+    const posterAttr = poster ? `poster="${esc(poster)}"` : '';
+    return `<video class="modal-video" autoplay loop ${mutedAttr} playsinline preload="none" decoding="async" ${posterAttr} data-src="${esc(src)}"></video>`;
+  }
+
+  function startVideo(videoEl, volume) {
+    /* Arrêter toute autre vidéo active sur la page */
+    document.querySelectorAll('video').forEach(v => {
+      if (v !== videoEl) { v.pause(); v.src = ''; }
+    });
+    /* Charger le src uniquement maintenant (lazy) */
+    const lazySrc = videoEl.dataset.src;
+    if (lazySrc && !videoEl.src) {
+      videoEl.src = lazySrc;
+    }
+    videoEl.muted  = !soundEnabled;
+    videoEl.volume = volume;
+    /* RAF pour sync avec le cycle de rendu */
+    requestAnimationFrame(() => videoEl.play().catch(()=>{}));
+  }
 
   /* Close handlers */
   function closeModal() {
@@ -1992,8 +2606,8 @@ function openModal(uuid) {
       const chroma = chromas[ci];
       const $media = document.getElementById('modal-media');
       if (chroma.streamedVideo) {
-        $media.innerHTML = `<video class="modal-video" autoplay loop muted playsinline src="${esc(chroma.streamedVideo)}"></video>`;
-        $media.querySelector('video').play().catch(()=>{});
+        $media.innerHTML = makeVideo(chroma.streamedVideo, chroma.displayIcon || skin.img || '');
+        startVideo($media.querySelector('video'), soundVolume);
       } else {
         $media.innerHTML = `<img class="modal-img" src="${esc(chroma.fullRender || chroma.displayIcon || '')}" alt="${esc(skin.name)}" />`;
       }
@@ -2008,8 +2622,8 @@ function openModal(uuid) {
     li.classList.add('active');
     const lv  = levels[parseInt(li.dataset.li, 10)];
     const $media = document.getElementById('modal-media');
-    $media.innerHTML = `<video class="modal-video" autoplay loop muted playsinline src="${esc(lv.streamedVideo)}"></video>`;
-    $media.querySelector('video').play().catch(()=>{});
+    $media.innerHTML = makeVideo(lv.streamedVideo);
+    startVideo($media.querySelector('video'), soundVolume);
   });
 }
 
@@ -2025,9 +2639,38 @@ document.addEventListener('keydown', e => {
 /* ── BOOT via DOMContentLoaded ───────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   console.log('[VALOSKINS] 📄 DOMContentLoaded');
+
+  /* ── Migration ancien format valo-wl → valo-wl-v2 ── */
+  try {
+    const oldWl = localStorage.getItem('valo-wl');
+    if (oldWl && !localStorage.getItem(WL_KEY)) {
+      const uuids = JSON.parse(oldWl);
+      if (Array.isArray(uuids) && uuids.length) {
+        wlData.lists[0] = uuids;
+        saveWLData();
+        localStorage.removeItem('valo-wl');
+        console.log('[VALOSKINS] 🔄 Migration wishlist v1 → v2 :', uuids.length, 'skins');
+      }
+    }
+  } catch {}
+
+  /* ── Charger wishlist partagée depuis URL hash ── */
+  try {
+    const hash = location.hash;
+    const m    = hash.match(/#wishlist=([A-Za-z0-9+/=]+)/);
+    if (m) {
+      const uuids = atob(m[1]).split(',').filter(Boolean);
+      if (uuids.length) {
+        wlData.lists[0] = uuids;
+        saveWLData();
+        history.replaceState(null, '', location.pathname);
+        console.log('[VALOSKINS] 🔗 Wishlist partagée chargée :', uuids.length, 'skins');
+      }
+    }
+  } catch {}
+
   initDOMRefs();
   bindEvents();
-  /* Afficher le fallback immédiatement, puis tenter l'API en arrière-plan */
   showFallbackImmediately();
   init();
 });
