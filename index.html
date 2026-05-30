@@ -1695,35 +1695,90 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
-     MON SHOP — Redirection vers outils externes
+     MON SHOP — OAuth Riot (PKCE flow)
      ══════════════════════════════════════════════════════════ -->
 <div id="shop-view" style="display:none">
   <div class="shop-redirect-wrap">
-    <div class="shop-redirect-card">
-      <div class="shop-redirect-icon">🛍️</div>
-      <h2 class="shop-redirect-title">Voir mon Shop Valorant</h2>
+
+    <!-- ÉTAPE 1 : pas encore connecté -->
+    <div class="shop-redirect-card" id="shop-oauth-step1">
+      <div class="shop-redirect-icon">🔐</div>
+      <h2 class="shop-redirect-title">Connexion Riot Games</h2>
       <p class="shop-redirect-desc">
-        L'accès direct au shop nécessite une connexion sécurisée gérée par des outils spécialisés.
-        Utilise l'un des services suivants — ils sont fiables et reconnus par la communauté.
+        Tu vas être redirigé vers le site officiel <strong>auth.riotgames.com</strong>.<br/>
+        Ton mot de passe n'est jamais transmis à ce site.
       </p>
-      <div class="shop-redirect-btns">
-        <a href="https://valpaw.gg" target="_blank" rel="noopener" class="shop-redirect-btn shop-redirect-btn--primary">
-          🐾 ValPaw
-          <span class="shop-redirect-sub">valpaw.gg</span>
-        </a>
-        <a href="https://valorantstore.net" target="_blank" rel="noopener" class="shop-redirect-btn">
-          🏪 Valorant Store
-          <span class="shop-redirect-sub">valorantstore.net</span>
-        </a>
-        <a href="https://val.favna.xyz" target="_blank" rel="noopener" class="shop-redirect-btn">
-          🔍 Val Store Checker
-          <span class="shop-redirect-sub">val.favna.xyz</span>
-        </a>
+
+      <div class="shop-field" style="margin-bottom:14px">
+        <label class="shop-label">Région</label>
+        <select id="riot-region" class="shop-input">
+          <option value="eu">EU — Europe</option>
+          <option value="na">NA — Amérique du Nord</option>
+          <option value="ap">AP — Asie-Pacifique</option>
+          <option value="kr">KR — Corée</option>
+          <option value="br">BR — Brésil</option>
+          <option value="latam">LATAM — Amérique Latine</option>
+        </select>
       </div>
-      <p class="shop-redirect-note">
-        💡 Astuce : ajoute les skins de ton shop à ta wishlist ici pour suivre leur prix.
+
+      <button id="shop-oauth-btn" class="shop-submit-btn">
+        🔑 Se connecter avec Riot
+      </button>
+
+      <p class="shop-redirect-note" style="margin-top:16px">
+        ⚠️ Active le <strong>2FA</strong> sur ton compte Riot avant de continuer.
+        Ce site n'accède qu'à ton shop — aucune donnée n'est stockée.
       </p>
     </div>
+
+    <!-- ÉTAPE 2 : après redirection, coller l'URL -->
+    <div class="shop-redirect-card" id="shop-oauth-step2" style="display:none">
+      <div class="shop-redirect-icon">📋</div>
+      <h2 class="shop-redirect-title">Étape 2 — Colle l'URL</h2>
+      <p class="shop-redirect-desc">
+        Après t'être connecté sur Riot, ton navigateur affiche une <strong>page d'erreur</strong> — c'est normal.<br/>
+        Copie l'URL complète de cette page et colle-la ci-dessous.
+      </p>
+      <div class="shop-field">
+        <label class="shop-label">URL de la page d'erreur</label>
+        <textarea id="shop-oauth-url" class="shop-input" rows="3"
+          placeholder="http://localhost/redirect?code=XXXXX..."></textarea>
+      </div>
+      <button id="shop-oauth-submit" class="shop-submit-btn">
+        <span id="shop-oauth-submit-txt">✅ Valider et voir mon shop</span>
+        <span id="shop-oauth-submit-spin" style="display:none">⏳ Chargement…</span>
+      </button>
+      <div id="shop-oauth-error" class="shop-login-error" style="display:none"></div>
+      <button id="shop-oauth-back" style="margin-top:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;text-decoration:underline">
+        ← Recommencer
+      </button>
+    </div>
+
+    <!-- ÉTAPE 3 : shop affiché -->
+    <div id="shop-connected" style="display:none;width:100%">
+      <div class="shop-user-bar">
+        <div class="shop-user-info">
+          <span class="shop-user-icon">👤</span>
+          <span id="shop-username-display">—</span>
+          <span class="shop-region-badge" id="shop-region-display">EU</span>
+        </div>
+        <div class="shop-user-actions">
+          <button class="shop-action-btn" id="shop-refresh-btn">🔄 Actualiser</button>
+          <button class="shop-action-btn shop-action-btn--logout" id="shop-logout-btn">🚪 Déconnexion</button>
+        </div>
+      </div>
+      <div class="shop-countdown-bar">
+        <span class="shop-countdown-label">Renouvellement dans</span>
+        <span class="shop-countdown-timer" id="shop-countdown">--:--:--</span>
+      </div>
+      <div id="night-market-section" style="display:none">
+        <div class="shop-section-title"><span class="shop-nm-icon">🌙</span> Night Market actif</div>
+        <div class="shop-grid shop-grid--nm" id="night-market-grid"></div>
+      </div>
+      <div class="shop-section-title"><span>🛍️</span> Shop du jour</div>
+      <div class="shop-grid" id="shop-daily-grid"></div>
+    </div>
+
   </div>
 </div>
 
@@ -2688,6 +2743,14 @@ function bindEvents() {
   /* ── SHOP NAVIGATION ─────────────────────────────────── */
   document.getElementById('shop-nav-btn').addEventListener('click', () => showView('shop'));
   document.querySelector('.logo')?.addEventListener('click', () => showView('catalogue'));
+  document.getElementById('shop-oauth-btn')?.addEventListener('click', startOAuthFlow);
+  document.getElementById('shop-oauth-submit')?.addEventListener('click', submitOAuthUrl);
+  document.getElementById('shop-oauth-back')?.addEventListener('click', () => {
+    document.getElementById('shop-oauth-step2').style.display = 'none';
+    document.getElementById('shop-oauth-step1').style.display = 'block';
+  });
+  document.getElementById('shop-refresh-btn')?.addEventListener('click', () => { if (shopToken) fetchAndRenderShop(); });
+  document.getElementById('shop-logout-btn')?.addEventListener('click', shopLogout);
 
   /* ── WISHLIST PANEL ─────────────────────────────────── */
   $wlBtn.addEventListener('click', openWL);
@@ -3020,25 +3083,28 @@ document.addEventListener('keydown', e => {
 });
 
 /* ══════════════════════════════════════════════════════════════
-   MON SHOP VALORANT
+   MON SHOP VALORANT — OAuth PKCE flow
    ══════════════════════════════════════════════════════════════ */
 
-/* ── État global shop ─────────────────────────────────────────── */
-let shopToken     = null;   /* Access token — en mémoire uniquement, jamais persisté */
-let shopPuuid     = null;
-let shopUsername  = '';
-let shopRegion    = 'eu';
+let shopToken    = null;
+let shopPuuid    = null;
+let shopUsername = '';
+let shopRegion   = 'eu';
+let shopAuthCode = null;
 let shopCountdownTimer = null;
 
-/* Riot ClientPlatform header (base64 du JSON standard) */
 const RIOT_CLIENT_PLATFORM = btoa(JSON.stringify({
-  platformType: 'PC',
-  platformOS: 'Windows',
-  platformOSVersion: '10.0.19042.1.256.64bit',
-  platformChipset: 'Unknown'
+  platformType: 'PC', platformOS: 'Windows',
+  platformOSVersion: '10.0.19042.1.256.64bit', platformChipset: 'Unknown'
 }));
 
-/* ── Navigation Catalogue ↔ Shop ───────────────────────────────── */
+/* Nonce aléatoire pour OAuth */
+function randomNonce(len) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from({length: len}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+/* ── Navigation catalogue ↔ shop ───────────────────────────────── */
 function showView(view) {
   const app      = document.getElementById('app');
   const shopView = document.getElementById('shop-view');
@@ -3047,7 +3113,6 @@ function showView(view) {
     app.style.display      = 'none';
     shopView.style.display = 'block';
     shopBtn.classList.add('active');
-    /* Reprendre le countdown si déjà connecté */
     if (shopToken) startCountdown();
   } else {
     app.style.display      = '';
@@ -3057,173 +3122,92 @@ function showView(view) {
   }
 }
 
-/* ── Countdown reset shop (minuit UTC) ─────────────────────────── */
+/* ── Countdown reset (minuit UTC) ───────────────────────────────── */
 function startCountdown() {
   if (shopCountdownTimer) clearInterval(shopCountdownTimer);
   function tick() {
     const now  = new Date();
     const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
     const diff = next - now;
-    const h    = String(Math.floor(diff / 3600000)).padStart(2,'0');
-    const m    = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
-    const s    = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
-    const el   = document.getElementById('shop-countdown');
+    const h = String(Math.floor(diff / 3600000)).padStart(2,'0');
+    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
+    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+    const el = document.getElementById('shop-countdown');
     if (el) el.textContent = `${h}:${m}:${s}`;
   }
   tick();
   shopCountdownTimer = setInterval(tick, 1000);
 }
 
-/* ── Rendu d'une shop-card ─────────────────────────────────────── */
-function shopCardHTML(skinData, nmOffer) {
-  const s       = skinData;
-  const inWl    = wishlist.includes(s.uuid);
-  const imgSrc  = s.img || '';
-  const inWlBadge = inWl ? `<span class="shop-in-wl">✓ Dans ta wishlist</span>` : '';
+/* ── Étape 1 : ouvrir la page Riot dans un nouvel onglet ───────── */
+function startOAuthFlow() {
+  const region = document.getElementById('riot-region').value;
+  shopRegion   = region;
+  const nonce  = randomNonce(22);
+  sessionStorage.setItem('riot-oauth-nonce', nonce);
 
-  let priceBlock;
-  if (nmOffer) {
-    const origVp    = nmOffer.originalVp;
-    const discVp    = nmOffer.discountedVp;
-    const pct       = nmOffer.discountPercent;
-    priceBlock = `
-      <div class="shop-card-price-nm">
-        <span class="shop-price-original">${origVp.toLocaleString('fr-FR')} VP</span>
-        <span class="shop-price-discount">${discVp.toLocaleString('fr-FR')} VP <span class="shop-price-pct">-${pct}%</span></span>
-      </div>`;
-  } else {
-    priceBlock = `<span class="shop-card-price">${s.tier.vp.toLocaleString('fr-FR')} VP</span>`;
-  }
-
-  return `
-  <div class="shop-card" data-uuid="${esc(s.uuid)}">
-    <div class="shop-card-bar" style="background:${esc(s.tier.color)}"></div>
-    ${inWlBadge}
-    <div class="shop-card-img">
-      ${imgSrc ? `<img src="${esc(imgSrc)}" alt="${esc(s.name)}" loading="lazy" />` : '<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="22" x2="22" y2="2"/></svg>'}
-    </div>
-    <div class="shop-card-body">
-      <div class="shop-card-name" title="${esc(s.name)}">${esc(s.name)}</div>
-      <div class="shop-card-badges">
-        <span class="badge" style="background:${esc(s.tier.color)}22;color:${esc(s.tier.color)};border:1px solid ${esc(s.tier.color)}44">${esc(s.tier.label)}</span>
-        ${s.tier.isMelee
-          ? `<span class="badge badge-melee">🔪 MELEE</span>`
-          : `<span class="badge" style="background:rgba(123,158,185,.1);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(s.weapon)}</span>`}
-      </div>
-      <div class="shop-card-footer">
-        ${priceBlock}
-        <button class="shop-wl-btn" data-uuid="${esc(s.uuid)}" title="${inWl ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}">
-          ${inWl ? '❤️' : '🤍'}
-        </button>
-      </div>
-    </div>
-  </div>`;
-}
-
-/* Skeleton de chargement */
-function shopSkeletonHTML(n) {
-  return Array(n).fill(`
-  <div class="shop-skeleton">
-    <div class="shop-skeleton-img"></div>
-    <div class="shop-skeleton-line"></div>
-    <div class="shop-skeleton-line short"></div>
-  </div>`).join('');
-}
-
-/* ── Afficher le shop après auth ───────────────────────────────── */
-function renderShop(dailyUuids, nmOffers) {
-  const $daily = document.getElementById('shop-daily-grid');
-  const $nm    = document.getElementById('night-market-grid');
-  const $nmSec = document.getElementById('night-market-section');
-
-  /* Shop journalier (4 skins) */
-  $daily.innerHTML = dailyUuids.map(uuid => {
-    const s = allSkins.find(x => x.uuid === uuid);
-    if (!s) return `<div class="shop-skeleton"><div class="shop-skeleton-img"></div><div class="shop-skeleton-line"></div></div>`;
-    return shopCardHTML(s, null);
-  }).join('');
-
-  /* Night Market */
-  if (nmOffers && nmOffers.length > 0) {
-    $nmSec.style.display = 'block';
-    $nm.innerHTML = nmOffers.map(offer => {
-      const s = allSkins.find(x => x.uuid === offer.uuid);
-      if (!s) return '';
-      return shopCardHTML(s, offer);
-    }).join('');
-  } else {
-    $nmSec.style.display = 'none';
-  }
-
-  /* Delegation clics wishlist sur shop-cards */
-  [$daily, $nm].forEach(grid => {
-    grid.addEventListener('click', e => {
-      const btn = e.target.closest('.shop-wl-btn');
-      if (!btn) return;
-      toggleWishlist(btn.dataset.uuid);
-      /* re-render shop cards pour mettre à jour badges */
-      renderShop(dailyUuids, nmOffers);
-    });
+  const params = new URLSearchParams({
+    client_id:     'riot-client',
+    redirect_uri:  'http://localhost/redirect',
+    response_type: 'code',
+    scope:         'openid link ban lol_region account offline_access',
+    nonce,
   });
+
+  const authUrl = `https://auth.riotgames.com/authorize?${params.toString()}`;
+  window.open(authUrl, '_blank');
+
+  /* Passer à l'étape 2 */
+  document.getElementById('shop-oauth-step1').style.display = 'none';
+  document.getElementById('shop-oauth-step2').style.display = 'block';
 }
 
-/* ── LOGIN : appel au proxy Vercel /api/auth ───────────────────── */
-async function doShopLogin() {
-  const usernameEl = document.getElementById('riot-username');
-  const passwordEl = document.getElementById('riot-password');
-  const regionEl   = document.getElementById('riot-region');
-  const errEl      = document.getElementById('shop-login-error');
-  const btn        = document.getElementById('shop-login-btn');
-  const txtEl      = document.getElementById('shop-login-txt');
-  const spinEl     = document.getElementById('shop-login-spin');
-
-  const username = usernameEl.value.trim();
-  const password = passwordEl.value;
-  const region   = regionEl.value;
+/* ── Étape 2 : extraire le code depuis l'URL collée ────────────── */
+async function submitOAuthUrl() {
+  const rawUrl  = document.getElementById('shop-oauth-url').value.trim();
+  const errEl   = document.getElementById('shop-oauth-error');
+  const btn     = document.getElementById('shop-oauth-submit');
+  const txtEl   = document.getElementById('shop-oauth-submit-txt');
+  const spinEl  = document.getElementById('shop-oauth-submit-spin');
 
   errEl.style.display = 'none';
 
-  if (!username || !password) {
-    errEl.textContent   = 'Remplis tous les champs.';
+  /* Extraire le code de l'URL */
+  let code;
+  try {
+    const url = new URL(rawUrl);
+    code = url.searchParams.get('code');
+  } catch {
+    code = rawUrl.match(/[?&]code=([^&]+)/)?.[1];
+  }
+
+  if (!code) {
+    errEl.textContent   = "Impossible de trouver le code dans l'URL. Assure-toi de copier l'URL complète après la connexion.";
     errEl.style.display = 'block';
     return;
   }
 
-  /* UI: état chargement */
-  btn.disabled     = true;
+  btn.disabled         = true;
   txtEl.style.display  = 'none';
   spinEl.style.display = 'inline';
 
-  /* ⚠️ Effacer le mot de passe immédiatement */
-  passwordEl.value = '';
-
   try {
+    /* Échanger le code contre un token via le proxy Vercel */
     const resp = await fetchWithTimeout('/api/auth', {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, region })
+      body:    JSON.stringify({ code, region: shopRegion, grant_type: 'authorization_code' }),
     }, 15000);
 
     const data = await resp.json();
+    if (!resp.ok || !data.token) throw new Error(data.error || `Erreur HTTP ${resp.status}`);
 
-    if (!resp.ok || !data.token) {
-      throw new Error(data.error || `Erreur HTTP ${resp.status} — vérifie tes identifiants.`);
-    }
-
-    shopToken    = data.token;
-    shopRegion   = region;
-    shopUsername = username;
-
-    /* Fetch PUUID + shop */
+    shopToken = data.token;
     await fetchAndRenderShop();
 
   } catch (err) {
-    console.error('[SHOP] Login error:', err);
-    let msg = err.message || 'Erreur inconnue.';
-    if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
-      msg = 'Impossible de contacter le proxy. Vérifie que le site est déployé sur Vercel avec les serverless functions (pas en drag & drop).';
-    }
-    errEl.innerHTML     = '❌ ' + msg;
+    console.error('[SHOP] OAuth error:', err);
+    errEl.textContent   = '❌ ' + (err.message || 'Erreur inconnue.');
     errEl.style.display = 'block';
   } finally {
     btn.disabled         = false;
@@ -3232,65 +3216,90 @@ async function doShopLogin() {
   }
 }
 
+/* ── Rendu shop card ────────────────────────────────────────────── */
+function shopCardHTML(s, nmOffer) {
+  const inWl = wishlist.includes(s.uuid);
+  let priceBlock;
+  if (nmOffer) {
+    priceBlock = `<div class="shop-card-price-nm">
+      <span class="shop-price-original">${nmOffer.originalVp.toLocaleString('fr-FR')} VP</span>
+      <span class="shop-price-discount">${nmOffer.discountedVp.toLocaleString('fr-FR')} VP <span class="shop-price-pct">-${nmOffer.discountPercent}%</span></span>
+    </div>`;
+  } else {
+    priceBlock = `<span class="shop-card-price">${s.tier.vp.toLocaleString('fr-FR')} VP</span>`;
+  }
+  return `
+  <div class="shop-card" data-uuid="${esc(s.uuid)}">
+    <div class="shop-card-bar" style="background:${esc(s.tier.color)}"></div>
+    ${inWl ? '<span class="shop-in-wl">✓ Dans ta wishlist</span>' : ''}
+    <div class="shop-card-img">
+      ${s.img ? `<img src="${esc(s.img)}" alt="${esc(s.name)}" loading="lazy"/>` : ''}
+    </div>
+    <div class="shop-card-body">
+      <div class="shop-card-name">${esc(s.name)}</div>
+      <div class="shop-card-badges">
+        <span class="badge" style="background:${esc(s.tier.color)}22;color:${esc(s.tier.color)};border:1px solid ${esc(s.tier.color)}44">${esc(s.tier.label)}</span>
+        ${s.tier.isMelee ? '<span class="badge badge-melee">🔪 MELEE</span>' : `<span class="badge" style="background:rgba(123,158,185,.1);color:#7B9EB9;border:1px solid rgba(123,158,185,.2)">${esc(s.weapon)}</span>`}
+      </div>
+      <div class="shop-card-footer">
+        ${priceBlock}
+        <button class="shop-wl-btn" data-uuid="${esc(s.uuid)}">${inWl ? '❤️' : '🤍'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function shopSkeletonHTML(n) {
+  return Array(n).fill(`<div class="shop-skeleton"><div class="shop-skeleton-img"></div><div class="shop-skeleton-line"></div><div class="shop-skeleton-line short"></div></div>`).join('');
+}
+
 /* ── Fetch PUUID + storefront ───────────────────────────────────── */
 async function fetchAndRenderShop() {
-  const $daily    = document.getElementById('shop-daily-grid');
-  const $login    = document.getElementById('shop-login-section');
-  const $conn     = document.getElementById('shop-connected');
-  const $uname    = document.getElementById('shop-username-display');
-  const $regionBadge = document.getElementById('shop-region-display');
+  const $daily   = document.getElementById('shop-daily-grid');
+  const $step2   = document.getElementById('shop-oauth-step2');
+  const $conn    = document.getElementById('shop-connected');
 
-  /* Afficher section connectée + skeletons */
-  $login.style.display = 'none';
+  $step2.style.display = 'none';
   $conn.style.display  = 'block';
   $daily.innerHTML     = shopSkeletonHTML(4);
-  $uname.textContent   = shopUsername;
-  $regionBadge.textContent = shopRegion.toUpperCase();
   startCountdown();
 
   try {
-    /* 1. PUUID */
-    const userResp = await fetchWithTimeout('https://auth.riotgames.com/userinfo', {
+    /* PUUID */
+    const uResp = await fetchWithTimeout('https://auth.riotgames.com/userinfo', {
       headers: { Authorization: `Bearer ${shopToken}` }
     }, 8000);
-    if (!userResp.ok) throw new Error('Impossible de récupérer le profil joueur.');
-    const userData = await userResp.json();
-    shopPuuid = userData.sub;
-    console.log('[SHOP] PUUID:', shopPuuid);
+    if (!uResp.ok) throw new Error('Impossible de récupérer le profil joueur.');
+    const uData = await uResp.json();
+    shopPuuid    = uData.sub;
+    shopUsername = uData.acct?.game_name || uData.username || 'Joueur';
+    document.getElementById('shop-username-display').textContent = shopUsername;
+    document.getElementById('shop-region-display').textContent   = shopRegion.toUpperCase();
 
-    /* 2. Client version (valorant-api.com) */
+    /* Client version */
     let clientVersion = 'release-08.11-shipping-15-2581179';
     try {
-      const cvResp = await fetchWithTimeout('https://valorant-api.com/v1/version', {}, 5000);
-      const cvData = await cvResp.json();
-      clientVersion = cvData.data?.riotClientVersion || clientVersion;
-    } catch { /* fallback silencieux */ }
+      const cv = await fetchWithTimeout('https://valorant-api.com/v1/version', {}, 5000);
+      const cvd = await cv.json();
+      clientVersion = cvd.data?.riotClientVersion || clientVersion;
+    } catch {}
 
-    /* 3. Storefront */
+    /* Storefront */
     const sfResp = await fetchWithTimeout(
       `https://pd.${shopRegion}.a.pvp.net/store/v2/storefront/${shopPuuid}`,
-      {
-        headers: {
-          Authorization: `Bearer ${shopToken}`,
-          'X-Riot-ClientVersion':  clientVersion,
-          'X-Riot-ClientPlatform': RIOT_CLIENT_PLATFORM,
-        }
-      }, 10000
+      { headers: {
+        Authorization: `Bearer ${shopToken}`,
+        'X-Riot-ClientVersion':  clientVersion,
+        'X-Riot-ClientPlatform': RIOT_CLIENT_PLATFORM,
+      }}, 10000
     );
-    if (!sfResp.ok) {
-      if (sfResp.status === 403) throw new Error('Token expiré ou accès refusé. Reconnecte-toi.');
-      throw new Error(`Storefront HTTP ${sfResp.status}`);
-    }
+    if (!sfResp.ok) throw new Error(sfResp.status === 403 ? 'Token expiré. Reconnecte-toi.' : `Storefront HTTP ${sfResp.status}`);
     const sfData = await sfResp.json();
 
-    /* 4. Parser la réponse */
     const dailyUuids = sfData.SkinsPanelLayout?.SingleItemOffers || [];
-    console.log('[SHOP] Daily offers:', dailyUuids);
-
-    /* Night Market */
-    const nmRaw = sfData.BonusStore?.BonusStoreOffers || [];
-    const nmOffers = nmRaw.map(o => ({
-      uuid:            o.Offer?.OfferID,
+    const nmRaw      = sfData.BonusStore?.BonusStoreOffers || [];
+    const nmOffers   = nmRaw.map(o => ({
+      uuid: o.Offer?.OfferID,
       originalVp:      o.Offer?.Cost?.['85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741'] || 0,
       discountedVp:    o.DiscountCosts?.['85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741'] || 0,
       discountPercent: o.DiscountPercent || 0,
@@ -3299,29 +3308,51 @@ async function fetchAndRenderShop() {
     renderShop(dailyUuids, nmOffers.length ? nmOffers : null);
 
   } catch (err) {
-    console.error('[SHOP] fetchAndRenderShop error:', err);
-    $daily.innerHTML = `
-      <div style="grid-column:1/-1;padding:24px;color:#FF8090;font-family:monospace;font-size:.8rem;background:rgba(255,70,85,.06);border:1px solid rgba(255,70,85,.2);border-radius:6px">
-        ❌ ${err.message}
-        <br/><br/><button onclick="fetchAndRenderShop()" style="background:rgba(255,70,85,.12);border:1px solid rgba(255,70,85,.3);color:#FF4655;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:.8rem">🔄 Réessayer</button>
-      </div>`;
+    console.error('[SHOP]', err);
+    $daily.innerHTML = `<div style="grid-column:1/-1;padding:20px;color:#FF8090;background:rgba(255,70,85,.06);border:1px solid rgba(255,70,85,.2);border-radius:6px;font-size:.8rem">❌ ${err.message}</div>`;
   }
 }
 
-/* ── Déconnexion ────────────────────────────────────────────────── */
-function shopLogout() {
-  shopToken    = null;
-  shopPuuid    = null;
-  shopUsername = '';
-  if (shopCountdownTimer) { clearInterval(shopCountdownTimer); shopCountdownTimer = null; }
-  document.getElementById('shop-connected').style.display  = 'none';
-  document.getElementById('shop-login-section').style.display = 'flex';
-  document.getElementById('shop-daily-grid').innerHTML     = '';
-  document.getElementById('night-market-section').style.display = 'none';
-  console.log('[SHOP] Déconnecté — token effacé');
+function renderShop(dailyUuids, nmOffers) {
+  const $daily = document.getElementById('shop-daily-grid');
+  const $nm    = document.getElementById('night-market-grid');
+  const $nmSec = document.getElementById('night-market-section');
+
+  $daily.innerHTML = dailyUuids.map(uuid => {
+    const s = allSkins.find(x => x.uuid === uuid);
+    return s ? shopCardHTML(s, null) : `<div class="shop-skeleton"><div class="shop-skeleton-img"></div></div>`;
+  }).join('');
+
+  if (nmOffers?.length) {
+    $nmSec.style.display = 'block';
+    $nm.innerHTML = nmOffers.map(o => {
+      const s = allSkins.find(x => x.uuid === o.uuid);
+      return s ? shopCardHTML(s, o) : '';
+    }).join('');
+  } else {
+    $nmSec.style.display = 'none';
+  }
+
+  [$daily, $nm].forEach(grid => {
+    grid.addEventListener('click', e => {
+      const btn = e.target.closest('.shop-wl-btn');
+      if (!btn) return;
+      toggleWishlist(btn.dataset.uuid);
+      renderShop(dailyUuids, nmOffers);
+    });
+  });
 }
 
-/* ── BOOT via DOMContentLoaded ───────────────────────────────── */
+function shopLogout() {
+  shopToken = shopPuuid = null; shopUsername = '';
+  if (shopCountdownTimer) { clearInterval(shopCountdownTimer); shopCountdownTimer = null; }
+  document.getElementById('shop-connected').style.display  = 'none';
+  document.getElementById('shop-oauth-step1').style.display = 'block';
+  document.getElementById('shop-oauth-step2').style.display = 'none';
+  document.getElementById('shop-oauth-url').value = '';
+}
+
+/* ── BOOT via DOMContentLoaded ───────────────────────────────── *//* ── BOOT via DOMContentLoaded ───────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   console.log('[VALOSKINS] 📄 DOMContentLoaded');
 
