@@ -924,6 +924,67 @@
     }
 
     /* ─── RESPONSIVE ────────────────────────────────────────── */
+    /* ─── SHOP REDIRECT ─────────────────────────────────────── */
+    .shop-redirect-wrap {
+      display: flex; justify-content: center;
+      padding: 48px 20px;
+    }
+    .shop-redirect-card {
+      background: rgba(17,29,39,.9);
+      border: 1px solid rgba(123,158,185,.18);
+      border-radius: 12px; padding: 40px;
+      width: 100%; max-width: 500px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+    .shop-redirect-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .shop-redirect-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--white); margin-bottom: 12px;
+    }
+    .shop-redirect-desc {
+      font-size: .8rem; color: var(--muted);
+      line-height: 1.6; margin-bottom: 28px;
+      font-family: 'Barlow', sans-serif;
+    }
+    .shop-redirect-btns {
+      display: flex; flex-direction: column; gap: 10px;
+      margin-bottom: 24px;
+    }
+    .shop-redirect-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 18px; border-radius: 7px;
+      background: rgba(123,158,185,.07);
+      border: 1px solid rgba(123,158,185,.18);
+      color: var(--white); text-decoration: none;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .95rem; font-weight: 600;
+      transition: background .2s, border-color .2s, transform .15s;
+    }
+    .shop-redirect-btn:hover {
+      background: rgba(123,158,185,.15);
+      border-color: rgba(123,158,185,.35);
+      transform: translateX(3px);
+    }
+    .shop-redirect-btn--primary {
+      background: rgba(255,70,85,.1);
+      border-color: rgba(255,70,85,.3);
+    }
+    .shop-redirect-btn--primary:hover {
+      background: rgba(255,70,85,.2);
+      border-color: #FF4655;
+    }
+    .shop-redirect-sub {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .68rem; color: var(--muted);
+      font-weight: 400; letter-spacing: .05em;
+    }
+    .shop-redirect-note {
+      font-size: .74rem; color: rgba(123,158,185,.6);
+      font-family: 'Barlow', sans-serif; line-height: 1.5;
+    }
+
     /* ─── NAV SHOP BTN ─────────────────────────────────────── */
     #shop-nav-btn {
       background: linear-gradient(135deg, rgba(255,70,85,.18), rgba(255,70,85,.08));
@@ -1634,105 +1695,36 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
-     MON SHOP VALORANT — Section cachée par défaut
+     MON SHOP — Redirection vers outils externes
      ══════════════════════════════════════════════════════════ -->
 <div id="shop-view" style="display:none">
-
-  <!-- BANDEAU AVERTISSEMENT SÉCURITÉ -->
-  <div id="shop-warning">
-    <div class="shop-warn-icon">⚠️</div>
-    <div class="shop-warn-text">
-      <strong>Outil non officiel.</strong>
-      Ne jamais entrer ton mot de passe sur un site que tu ne contrôles pas.
-      Active la <strong>double authentification (2FA)</strong> sur ton compte Riot avant d'utiliser cette fonctionnalité.
-      Ton mot de passe <strong>n'est jamais stocké</strong> — seul un token temporaire est gardé en mémoire le temps de la session.
-    </div>
-    <button class="shop-warn-close" id="shop-warn-close">✕</button>
-  </div>
-
-  <!-- FORMULAIRE DE CONNEXION -->
-  <div id="shop-login-section">
-    <div class="shop-login-card">
-      <div class="shop-login-logo">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="#FF4655"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+  <div class="shop-redirect-wrap">
+    <div class="shop-redirect-card">
+      <div class="shop-redirect-icon">🛍️</div>
+      <h2 class="shop-redirect-title">Voir mon Shop Valorant</h2>
+      <p class="shop-redirect-desc">
+        L'accès direct au shop nécessite une connexion sécurisée gérée par des outils spécialisés.
+        Utilise l'un des services suivants — ils sont fiables et reconnus par la communauté.
+      </p>
+      <div class="shop-redirect-btns">
+        <a href="https://valpaw.gg" target="_blank" rel="noopener" class="shop-redirect-btn shop-redirect-btn--primary">
+          🐾 ValPaw
+          <span class="shop-redirect-sub">valpaw.gg</span>
+        </a>
+        <a href="https://valorantstore.net" target="_blank" rel="noopener" class="shop-redirect-btn">
+          🏪 Valorant Store
+          <span class="shop-redirect-sub">valorantstore.net</span>
+        </a>
+        <a href="https://val.favna.xyz" target="_blank" rel="noopener" class="shop-redirect-btn">
+          🔍 Val Store Checker
+          <span class="shop-redirect-sub">val.favna.xyz</span>
+        </a>
       </div>
-      <h2 class="shop-login-title">Connexion Riot Games</h2>
-      <p class="shop-login-sub">Visualise ton shop journalier sans quitter la page</p>
-
-      <div class="shop-login-form" id="shop-login-form">
-        <div class="shop-field">
-          <label class="shop-label">Nom d'utilisateur Riot</label>
-          <input type="text" id="riot-username" class="shop-input" placeholder="nom_utilisateur" autocomplete="username" />
-          <span style="font-size:.65rem;color:var(--muted);margin-top:4px;display:block;font-family:'Barlow',sans-serif">Ton nom de connexion Riot (pas le Pseudo#TAG affiché en jeu)</span>
-        </div>
-        <div class="shop-field">
-          <label class="shop-label">Région</label>
-          <select id="riot-region" class="shop-input">
-            <option value="eu">EU — Europe</option>
-            <option value="tr" selected>TR — Turquie 🇹🇷</option>
-            <option value="na">NA — Amérique du Nord</option>
-            <option value="ap">AP — Asie-Pacifique</option>
-            <option value="kr">KR — Corée</option>
-            <option value="br">BR — Brésil</option>
-            <option value="latam">LATAM — Amérique Latine</option>
-          </select>
-        </div>
-        <div class="shop-field">
-          <label class="shop-label">Mot de passe</label>
-          <div class="shop-pw-wrap">
-            <input type="password" id="riot-password" class="shop-input" placeholder="••••••••" autocomplete="current-password" />
-            <button type="button" class="shop-pw-toggle" id="shop-pw-toggle" title="Afficher/masquer">👁</button>
-          </div>
-        </div>
-        <button id="shop-login-btn" class="shop-submit-btn">
-          <span id="shop-login-txt">🔐 Voir mon shop</span>
-          <span id="shop-login-spin" style="display:none">⏳ Connexion…</span>
-        </button>
-        <div id="shop-login-error" class="shop-login-error" style="display:none"></div>
-      </div>
+      <p class="shop-redirect-note">
+        💡 Astuce : ajoute les skins de ton shop à ta wishlist ici pour suivre leur prix.
+      </p>
     </div>
   </div>
-
-  <!-- SHOP CONNECTÉ (caché jusqu'à auth réussie) -->
-  <div id="shop-connected" style="display:none">
-
-    <!-- Barre de statut joueur -->
-    <div class="shop-user-bar">
-      <div class="shop-user-info">
-        <span class="shop-user-icon">👤</span>
-        <span id="shop-username-display">—</span>
-        <span class="shop-region-badge" id="shop-region-display">EU</span>
-      </div>
-      <div class="shop-user-actions">
-        <button class="shop-action-btn" id="shop-refresh-btn" title="Actualiser le shop">🔄 Actualiser</button>
-        <button class="shop-action-btn shop-action-btn--logout" id="shop-logout-btn">🚪 Déconnexion</button>
-      </div>
-    </div>
-
-    <!-- Compte à rebours reset -->
-    <div class="shop-countdown-bar">
-      <span class="shop-countdown-label">Renouvellement dans</span>
-      <span class="shop-countdown-timer" id="shop-countdown">--:--:--</span>
-    </div>
-
-    <!-- Night Market (affiché si actif) -->
-    <div id="night-market-section" style="display:none">
-      <div class="shop-section-title">
-        <span class="shop-nm-icon">🌙</span> Night Market actif
-      </div>
-      <div class="shop-grid shop-grid--nm" id="night-market-grid"></div>
-    </div>
-
-    <!-- Shop du jour -->
-    <div class="shop-section-title">
-      <span>🛍️</span> Shop du jour
-    </div>
-    <div class="shop-grid" id="shop-daily-grid">
-      <!-- 4 cards injectées en JS -->
-    </div>
-
-  </div>
-
 </div>
 
 <script>
