@@ -1661,13 +1661,15 @@
 
       <div class="shop-login-form" id="shop-login-form">
         <div class="shop-field">
-          <label class="shop-label">Riot ID</label>
-          <input type="text" id="riot-username" class="shop-input" placeholder="Pseudo#TAG" autocomplete="off" />
+          <label class="shop-label">Nom d'utilisateur Riot</label>
+          <input type="text" id="riot-username" class="shop-input" placeholder="nom_utilisateur" autocomplete="username" />
+          <span style="font-size:.65rem;color:var(--muted);margin-top:4px;display:block;font-family:'Barlow',sans-serif">Ton nom de connexion Riot (pas le Pseudo#TAG affiché en jeu)</span>
         </div>
         <div class="shop-field">
           <label class="shop-label">Région</label>
           <select id="riot-region" class="shop-input">
             <option value="eu">EU — Europe</option>
+            <option value="tr" selected>TR — Turquie 🇹🇷</option>
             <option value="na">NA — Amérique du Nord</option>
             <option value="ap">AP — Asie-Pacifique</option>
             <option value="kr">KR — Corée</option>
