@@ -2687,19 +2687,6 @@ function bindEvents() {
 
   /* ── SHOP NAVIGATION ─────────────────────────────────── */
   document.getElementById('shop-nav-btn').addEventListener('click', () => showView('shop'));
-  document.getElementById('shop-warn-close')?.addEventListener('click', () => {
-    document.getElementById('shop-warning').style.display = 'none';
-  });
-  document.getElementById('shop-login-btn').addEventListener('click', doShopLogin);
-  ['riot-username','riot-password'].forEach(id => {
-    document.getElementById(id)?.addEventListener('keydown', e => { if (e.key === 'Enter') doShopLogin(); });
-  });
-  document.getElementById('shop-pw-toggle')?.addEventListener('click', () => {
-    const pw = document.getElementById('riot-password');
-    pw.type = pw.type === 'password' ? 'text' : 'password';
-  });
-  document.getElementById('shop-refresh-btn')?.addEventListener('click', () => { if (shopToken) fetchAndRenderShop(); });
-  document.getElementById('shop-logout-btn')?.addEventListener('click', shopLogout);
   document.querySelector('.logo')?.addEventListener('click', () => showView('catalogue'));
 
   /* ── WISHLIST PANEL ─────────────────────────────────── */
