@@ -1721,9 +1721,10 @@
         </select>
       </div>
 
-      <button id="shop-oauth-btn" class="shop-submit-btn">
+      <a id="shop-oauth-btn" class="shop-submit-btn" target="_blank" rel="noopener"
+         style="display:block;text-align:center;text-decoration:none">
         🔑 Se connecter avec Riot
-      </button>
+      </a>
 
       <p class="shop-redirect-note" style="margin-top:16px">
         ⚠️ Active le <strong>2FA</strong> sur ton compte Riot avant de continuer.
@@ -2743,7 +2744,13 @@ function bindEvents() {
   /* ── SHOP NAVIGATION ─────────────────────────────────── */
   document.getElementById('shop-nav-btn').addEventListener('click', () => showView('shop'));
   document.querySelector('.logo')?.addEventListener('click', () => showView('catalogue'));
-  document.getElementById('shop-oauth-btn')?.addEventListener('click', startOAuthFlow);
+  const oauthBtn = document.getElementById('shop-oauth-btn');
+  if (oauthBtn) {
+    /* Construire l'URL dès le survol/focus pour que le lien soit prêt au clic */
+    oauthBtn.href = buildOAuthUrl();
+    oauthBtn.addEventListener('mousedown', () => { oauthBtn.href = buildOAuthUrl(); });
+    oauthBtn.addEventListener('click', () => { setTimeout(goToStep2, 300); });
+  }
   document.getElementById('shop-oauth-submit')?.addEventListener('click', submitOAuthUrl);
   document.getElementById('shop-oauth-back')?.addEventListener('click', () => {
     document.getElementById('shop-oauth-step2').style.display = 'none';
@@ -3139,13 +3146,12 @@ function startCountdown() {
   shopCountdownTimer = setInterval(tick, 1000);
 }
 
-/* ── Étape 1 : ouvrir la page Riot dans un nouvel onglet ───────── */
-function startOAuthFlow() {
+/* ── Étape 1 : construire le lien Riot et passer à l'étape 2 ──── */
+function buildOAuthUrl() {
   const region = document.getElementById('riot-region').value;
   shopRegion   = region;
   const nonce  = randomNonce(22);
   sessionStorage.setItem('riot-oauth-nonce', nonce);
-
   const params = new URLSearchParams({
     client_id:     'riot-client',
     redirect_uri:  'http://localhost/redirect',
@@ -3153,11 +3159,16 @@ function startOAuthFlow() {
     scope:         'openid link ban lol_region account offline_access',
     nonce,
   });
+  return `https://auth.riotgames.com/authorize?${params.toString()}`;
+}
 
-  const authUrl = `https://auth.riotgames.com/authorize?${params.toString()}`;
-  window.open(authUrl, '_blank');
+function startOAuthFlow() {
+  /* Met à jour le href du lien avant la navigation */
+  const btn = document.getElementById('shop-oauth-btn');
+  btn.href  = buildOAuthUrl();
+}
 
-  /* Passer à l'étape 2 */
+function goToStep2() {
   document.getElementById('shop-oauth-step1').style.display = 'none';
   document.getElementById('shop-oauth-step2').style.display = 'block';
 }
